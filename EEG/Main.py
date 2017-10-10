@@ -14,7 +14,9 @@ labels_ot = []
 test_ot=[]
 testlabels_ot=[]
 ones=0
+twos=0
 threes=0
+fours=0
 for i in range(1,33):
     if i<10:
         file = open("D:/Boody/CESS/GP/EEG/data_preprocessed_python/s0"+str(i)+".dat", "rb")
@@ -26,31 +28,33 @@ for i in range(1,33):
 
     s=svm.LinearSVC()
     #s = GaussianNB()
-    data = Preprocessing.getData(f["data"][:20]) + Preprocessing.getData(f["data"][30:])
-    labels = Preprocessing.getLabels(f["labels"][0:20]) + Preprocessing.getLabels(f["labels"][30:])
+    data = Preprocessing.getData(f["data"])
+    labels = Preprocessing.getLabels(f["labels"])
     # test = Preprocessing.getData(f["data"][20:30])
     # correct = Preprocessing.getestlabels_otabels(f["labels"][20:30])
 
 
     for i in range(len(labels)):
         if labels[i]==2 :
-            if (ones < 150):
+            if (twos < 222):
                 data_ot.append(data[i])
                 labels_ot.append(labels[i])
             else:
                 test_ot.append(data[i])
                 testlabels_ot.append(labels[i])
-            ones+=1
+            twos+=1
         elif labels[i]==4:
-            if(threes<150):
+            if(fours<200):
                 data_ot.append(data[i])
                 labels_ot.append(labels[i])
             else:
                 test_ot.append(data[i])
                 testlabels_ot.append(labels[i])
-            threes+=1
+            fours+=1
 
-
+print("Training data : ",len(data_ot))
+print("Testing Data : ",len(test_ot))
+print("Ones : ",ones," Twos : ",twos," Threes : ",threes," Fours : ",fours)
 s.fit(np.array(data_ot), np.array(labels_ot))
 
 c =0
