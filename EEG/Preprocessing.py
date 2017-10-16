@@ -19,7 +19,6 @@ def sub(values):
     diff.append(abs(np.subtract(values[11], values[29])).tolist())
     diff.append(abs(np.subtract(values[12], values[30])).tolist())
     diff.append(abs(np.subtract(values[13], values[31])).tolist())
-
     return diff
 
 

@@ -1,5 +1,6 @@
 import numpy as np
 import Preprocessing
+import Plotter
 import pickle
 from sklearn import svm
 from sklearn.naive_bayes import GaussianNB
@@ -30,21 +31,34 @@ for i in range(1,33):
     #s = GaussianNB()
     data = Preprocessing.getData(f["data"])
     labels = Preprocessing.getLabels(f["labels"])
-    # test = Preprocessing.getData(f["data"][20:30])
-    # correct = Preprocessing.getestlabels_otabels(f["labels"][20:30])
-
 
     for i in range(len(labels)):
-        if labels[i]==2 :
-            if (twos < 222):
+        if labels[i]==1:
+            if (ones < 343):
+                data_ot.append(data[i])
+                labels_ot.append(labels[i])
+            else:
+                test_ot.append(data[i])
+                testlabels_ot.append(labels[i])
+            ones+=1
+        elif labels[i]==8:
+            if(twos<4):
                 data_ot.append(data[i])
                 labels_ot.append(labels[i])
             else:
                 test_ot.append(data[i])
                 testlabels_ot.append(labels[i])
             twos+=1
-        elif labels[i]==4:
-            if(fours<200):
+        elif labels[i]==3:
+            if(threes<195):
+                data_ot.append(data[i])
+                labels_ot.append(labels[i])
+            else:
+                test_ot.append(data[i])
+                testlabels_ot.append(labels[i])
+            threes+=1
+        elif labels[i]==7:
+            if(fours<4):
                 data_ot.append(data[i])
                 labels_ot.append(labels[i])
             else:
