@@ -22,17 +22,26 @@ def sub(values):
     return diff
 
 
-def getData(data):
+def getData(data): # data of a single person file
     t = np.linspace(0, 63, 8064)
     readings = []
-    for j in range(len(data)):
+    for j in range(len(data)):   # loop over each video
         values =[]
-        for i in range(40):
+        for i in range(40):     # loop over each channel
             transformed_signal = np.abs(np.fft.fftshift(np.fft.fft(data[j][i])))
             Omega = fftfreq(len(transformed_signal), d=t[1] - t[0])
             Delta_channel = transformed_signal.copy()
+
+            """
+            We extract 5 frequencies: Delta, Theta, Alpha, Beta, Gamma
+            We apply a band pass filter to have the wanted frequency.
+            Then we sum it up.
+            """
+
+            # Band Passing
             Delta_channel[(Omega > 4)] = 0
             Delta_channel[(Omega < 0.5)] = 0
+            # Summing
             delta = np.trapz(Delta_channel)
 
             Theta_channel = transformed_signal.copy()
@@ -61,15 +70,28 @@ def getData(data):
 
 def getLabels(data):
     results=[]
+
+    # extracting arousals and valencies they are the first two elements in each list of labels
     for i in range(len(data)):
         results.append(data[i][0:2].tolist())
+
+
+    """
+            x(0,10)
+            |
+        2   |   1
+     -------|-------
+        3   |   4
+            |
+            x(0,5)
+    """
 
     for i in range(len(results)):
         if results[i][0] >= 5 and results[i][1] >= 5:
             results[i] = 1
-        elif results[i][0] < 5 and results[i][1] >= 5:
+        elif results[i][0] < 5 and results[i][1] >= 5:  
             results[i] = 2
-        elif results[i][0] < 5 and results[i][1] < 5:
+        elif results[i][0] < 5 and results[i][1] < 5: 
             results[i] = 3
         elif results[i][0] >= 5 and results[i][1] < 5:
             results[i] = 4

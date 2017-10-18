@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import warnings
 from sklearn.preprocessing import RobustScaler
 import math
+from mlxtend.plotting import plot_decision_regions
 warnings.filterwarnings("ignore")
 
 data_ot = []
@@ -20,16 +21,16 @@ threes=0
 fours=0
 for i in range(1,33):
     if i<10:
-        file = open("D:/Boody/CESS/GP/EEG/data_preprocessed_python/s0"+str(i)+".dat", "rb")
+        file = open("./"+"s0"+str(i)+".dat", "rb")
     else:
-        file = open("D:/Boody/CESS/GP/EEG/data_preprocessed_python/s" +str(i) + ".dat", "rb")
+        file = open("./s" +str(i) + ".dat", "rb")
 
     f = pickle.load(file, encoding="latin1")
     file.close()
 
     s=svm.LinearSVC()
     #s = GaussianNB()
-    data = Preprocessing.getData(f["data"])
+    data = Preprocessing.getData(f["data_ot"])
     labels = Preprocessing.getLabels(f["labels"])
 
     for i in range(len(labels)):
@@ -69,7 +70,14 @@ for i in range(1,33):
 print("Training data : ",len(data_ot))
 print("Testing Data : ",len(test_ot))
 print("Ones : ",ones," Twos : ",twos," Threes : ",threes," Fours : ",fours)
+
 s.fit(np.array(data_ot), np.array(labels_ot))
+
+features, labels = np.array(data_ot), np.array(labels_ot)
+print(features.shape, labels.shape)
+print(labels[])
+plot_decision_regions(features, labels, clf=s)
+plt.show()
 
 c =0
 for k in range(len(test_ot)):
