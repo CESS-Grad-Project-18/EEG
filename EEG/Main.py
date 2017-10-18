@@ -13,8 +13,7 @@ warnings.filterwarnings("ignore")
 
 data_ot = []
 labels_ot = []
-test_ot=[]
-testlabels_ot=[]
+
 ones=0
 twos=0
 threes=0
@@ -30,59 +29,39 @@ for i in range(1,33):
 
     s=svm.LinearSVC()
     #s = GaussianNB()
-    data = Preprocessing.getData(f["data_ot"])
+    data = Preprocessing.getData(f["data"])
     labels = Preprocessing.getLabels(f["labels"])
 
-    for i in range(len(labels)):
-        if labels[i]==1:
-            if (ones < 343):
-                data_ot.append(data[i])
-                labels_ot.append(labels[i])
-            else:
-                test_ot.append(data[i])
-                testlabels_ot.append(labels[i])
-            ones+=1
-        elif labels[i]==8:
-            if(twos<4):
-                data_ot.append(data[i])
-                labels_ot.append(labels[i])
-            else:
-                test_ot.append(data[i])
-                testlabels_ot.append(labels[i])
-            twos+=1
-        elif labels[i]==3:
-            if(threes<195):
-                data_ot.append(data[i])
-                labels_ot.append(labels[i])
-            else:
-                test_ot.append(data[i])
-                testlabels_ot.append(labels[i])
-            threes+=1
-        elif labels[i]==7:
-            if(fours<4):
-                data_ot.append(data[i])
-                labels_ot.append(labels[i])
-            else:
-                test_ot.append(data[i])
-                testlabels_ot.append(labels[i])
-            fours+=1
 
-print("Training data : ",len(data_ot))
-print("Testing Data : ",len(test_ot))
+    label_filter = [1,3]
+    for d, label in zip(data,labels):
+    	if label in label_filter:
+    		data_ot.append(d)
+    		labels_ot.append(label)
+    # we train with 75% of the data and test with the rest
+    features = np.asarray(data_ot[: int(0.75 * len(data_ot))])
+    labels = np.asarray(labels_ot[: len(features)])
+
+    testing_features = np.asarray( data_ot[len(features):])
+    testing_labels = np.asarray( labels_ot[len(features):])
+
+    ones = len( np.where(np.asarray(labels_ot) == 1)[0] )
+    threes = len(labels_ot) - ones
+
+
+print("Training data : ",len(features), len(labels))
+print("Testing Data : ",len(testing_features), len(testing_labels))
+print("Total : ", ones + threes)
 print("Ones : ",ones," Twos : ",twos," Threes : ",threes," Fours : ",fours)
+print("Ones in training data : ", len(np.where(labels == 1)[0])  )
+print("Threes in training data : ", len(np.where(testing_labels == 3)[0])  )
 
-s.fit(np.array(data_ot), np.array(labels_ot))
+s.fit(features, labels)
 
-features, labels = np.array(data_ot), np.array(labels_ot)
-print(features.shape, labels.shape)
-print(labels[])
-plot_decision_regions(features, labels, clf=s)
-plt.show()
 
-c =0
-for k in range(len(test_ot)):
-    pr = s.predict(np.array(test_ot[k]))
-    print("Predicted: ", pr[0], " ,Correct Value: ", testlabels_ot[k] )
-    if pr[0] == testlabels_ot[k]:
-        c+=1
-print(c, "Correct out of ", len(testlabels_ot)," Percesion: " ,c/len(testlabels_ot)*100 )
+c = 0
+for prediction, actual_label in zip(s.predict(testing_features), testing_labels):
+	print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
+	if(prediction == actual_label):
+		c+=1
+print(c, "Correct out of ", len(testing_labels)," Percesion: " ,c/len(testing_labels)*100 )
