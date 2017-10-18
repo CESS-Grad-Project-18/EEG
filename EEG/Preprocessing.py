@@ -5,12 +5,15 @@ import warnings
 
 def sub(values):
     diff = []
+
     diff.append(abs(np.subtract(values[0], values[16])).tolist())
     diff.append(abs(np.subtract(values[1], values[17])).tolist())
+
     diff.append(abs(np.subtract(values[2], values[19])).tolist())
     diff.append(abs(np.subtract(values[3], values[20])).tolist())
     diff.append(abs(np.subtract(values[4], values[21])).tolist())
     diff.append(abs(np.subtract(values[5], values[22])).tolist())
+
     diff.append(abs(np.subtract(values[6], values[24])).tolist())
     diff.append(abs(np.subtract(values[7], values[25])).tolist())
     diff.append(abs(np.subtract(values[8], values[26])).tolist())
@@ -19,6 +22,7 @@ def sub(values):
     diff.append(abs(np.subtract(values[11], values[29])).tolist())
     diff.append(abs(np.subtract(values[12], values[30])).tolist())
     diff.append(abs(np.subtract(values[13], values[31])).tolist())
+    
     return diff
 
 
