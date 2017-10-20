@@ -4,4 +4,4 @@
 
 | Simplified | Detailed |
 |:----:|:------:|
-| (https://github.com/CESS-Grad-Project-18/EEG/blob/Ghozlan/Figures/10_20_Detailed.png) | (https://github.com/CESS-Grad-Project-18/EEG/blob/Ghozlan/Figures/10_20_Simplified.jpg) |
+| ![](https://github.com/CESS-Grad-Project-18/EEG/blob/Ghozlan/Figures/10_20_Detailed.png) | ![](https://github.com/CESS-Grad-Project-18/EEG/blob/Ghozlan/Figures/10_20_Simplified.jpg) |
