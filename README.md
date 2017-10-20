@@ -12,4 +12,4 @@
 | Data | Delta | Theta | Alpha | Beta | Gamma |
 |:----:|:------:|:------:|:------:|:------:|:------:|
 | Frequency (Hz) | 1 - 4 | 4 - 8 | 8 - 12 | 12- 25 | < 25 |
-| Features | 1 - 4 | 4 - 8 | 8 - 12 | 12- 25 | < 25 |
+| Features | - Slowest and highest amplitude brainwaves. - Only present during dreamless sleep (NREM)  | 4 - 8 | 8 - 12 | 12- 25 | < 25 |
