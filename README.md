@@ -1,13 +1,32 @@
 # EEG
 
-## 10-20 System
+### 10-20 System
+
+- `C` = central (Middle region of the head)
+- `F` = frontal (Frontal region of the head)
+- `Fp` = frontopolar (Frontal region of the head, near forehead)
+- `O` = occipital (Back region of the head)
+- `P` = parietal (Back region of the head)
+- `T` = temporal (Outer region of the head)
+- `Even` values represent electrode on `right` hemisphere (2, 4, 6, 8).
+- `Odd` values represent electrode on `left` hemisphere (1, 3, 5, 7).
+
+### Higher resolution 10 - 20 systems
+
+- `AF` for electrodes between `Fp` and `F`
+- `CP` for electrodes between `C` and `P`
+- `FC` for electrodes between `F` and `C`
+- `FT` for electrodes between `F` and `T`
+- `PO` for electrodes between `P` and `O`
+- `TP` for electrodes between `T` and `P`
+
 
 | Simplified | Detailed |
 |:----:|:------:|
 | ![](https://github.com/CESS-Grad-Project-18/EEG/blob/Ghozlan/Figures/10_20_Detailed.png) | ![](https://github.com/CESS-Grad-Project-18/EEG/blob/Ghozlan/Figures/10_20_Simplified.png) |
 
 
-# Frequency bands 
+### Frequency bands 
 
 | Data | Delta | Theta | Alpha | Beta | Gamma |
 |:----|:------|:------|:------|:------|:------|
