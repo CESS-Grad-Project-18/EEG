@@ -1,0 +1,66 @@
+elif device.product_name == 'EPOC+':
+                    
+                    print "\n" + device.product_name + " Found!\n"
+                    useDevice = raw_input("Use this device? [Y]es? ")
+                    if useDevice.upper() == "Y":                   
+                         devicesUsed += 1
+                         devices.append(device)
+                         device.open()
+                         self.serial_number = device.serial_number
+                         device.set_raw_data_handler(self.handler)
+                         
+                         try:
+                            device_mode = [0x0] * 33
+                            device_mode[1] = 0x55
+                            device_mode[2] = 0xAA
+                            device_mode[3] = 0x20
+                            device_mode[4] = 0x12
+
+                            EPOC_ChangeMode = 1
+                            
+                            # EPOC 
+                            if EPOC_ChangeMode == 1:
+                                device_mode[5] = 0x00
+
+                            # EPOC+ 128hz 16bit - MEMS off 
+                            if EPOC_ChangeMode == 2:
+                                device_mode[5] = 0x82                                
+
+                            # EPOC+ 128hz 16bit - MEMS 32hz 16bit
+                            if EPOC_ChangeMode == 3:
+                                device_mode[5] = 0x86                                
+                            
+                            # EPOC+ 128hz 16bit - MEMS 64hz 16bit
+                            if EPOC_ChangeMode == 4:
+                                device_mode[5] = 0x8A
+                            
+                            # EPOC+ 128hz 16bit - MEMS 128hz 16bit
+                            if EPOC_ChangeMode == 5:
+                                device_mode[5] = 0x8E                                
+
+                            # EPOC+ 256hz 16bit - MEMS off
+                            if EPOC_ChangeMode == 6:
+                                device_mode[5] = 0xE2                                
+
+                            # EPOC+ 256hz 16bit - MEMS 32hz 16bit
+                            if EPOC_ChangeMode == 7:
+                                device_mode[5] = 0xE6    
+                                
+                            # EPOC+ 256hz 16bit - MEMS 64hz 16bit
+                            if EPOC_ChangeMode == 8:
+                                device_mode[5] = 0xEA                                
+                            
+                            # EPOC+ 256hz 16bit - MEMS 128hz 16bit
+                            if EPOC_ChangeMode == 9:
+                                device_mode[5] = 0xEE
+                                
+
+                            report = device.find_output_reports()
+                            report[0].set_raw_data(device_mode)
+                            report[0].send()
+                            print "Sending Packet!"
+           
+                         except Exception, exception:
+                            print("Oops!",sys.exc_info()[0],"occured.")
+                            print exception
+                            print sys.exc_traceback.tb_lineno 
