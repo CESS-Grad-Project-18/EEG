@@ -16,12 +16,12 @@ def sub(values):
 
     diff.append(abs(np.subtract(values[6], values[24])).tolist())
     diff.append(abs(np.subtract(values[7], values[25])).tolist())
-    diff.append(abs(np.subtract(values[8], values[26])).tolist())
-    diff.append(abs(np.subtract(values[9], values[27])).tolist())
-    diff.append(abs(np.subtract(values[10], values[28])).tolist())
-    diff.append(abs(np.subtract(values[11], values[29])).tolist())
-    diff.append(abs(np.subtract(values[12], values[30])).tolist())
-    diff.append(abs(np.subtract(values[13], values[31])).tolist())
+    # diff.append(abs(np.subtract(values[8], values[26])).tolist())
+    # diff.append(abs(np.subtract(values[9], values[27])).tolist())
+    # diff.append(abs(np.subtract(values[10], values[28])).tolist())
+    # diff.append(abs(np.subtract(values[11], values[29])).tolist())
+    # diff.append(abs(np.subtract(values[12], values[30])).tolist())
+    # diff.append(abs(np.subtract(values[13], values[31])).tolist())
     
     return diff
 
@@ -91,12 +91,13 @@ def getLabels(data):
     """
 
     for i in range(len(results)):
-        if results[i][0] >= 5 and results[i][1] >= 5:
+        threshhold = 5.5
+        if results[i][0] >= threshhold and results[i][1] >= threshhold:
             results[i] = 1
-        elif results[i][0] < 5 and results[i][1] >= 5:  
+        elif results[i][0] < threshhold and results[i][1] >= threshhold:  
             results[i] = 2
-        elif results[i][0] < 5 and results[i][1] < 5: 
+        elif results[i][0] < threshhold and results[i][1] < threshhold: 
             results[i] = 3
-        elif results[i][0] >= 5 and results[i][1] < 5:
+        elif results[i][0] >= threshhold and results[i][1] < threshhold:
             results[i] = 4
     return results

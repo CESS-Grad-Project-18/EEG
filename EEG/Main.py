@@ -21,9 +21,10 @@ threes=0
 fours=0
 
 first_file_index = 1
-last_file_index =  10
+last_file_index =  1
 print("Using",last_file_index - first_file_index + 1, "file(s)")
-for i in range(first_file_index, last_file_index + 1):
+# for i in range(first_file_index, last_file_index + 1):
+for i in [1]:
     if i<10:
         file = open("./"+"s0"+str(i)+".dat", "rb")
     else:
@@ -32,14 +33,6 @@ for i in range(first_file_index, last_file_index + 1):
     f = pickle.load(file, encoding="latin1")
     file.close()
 
-    # s=svm.LinearSVC()
-    # s = svm.SVC()
-    # s = svm.SVR()
-    # s = svm.SVC(kernel = "rbf", class_weight = {1:0.15})
-    # s = svm.SVC(C=1.0, tol=1e-10, cache_size=600, kernel='rbf', gamma = 1e-6)
-    # s = svm.SVC(C=1.0, tol=1e-10, cache_size=600, kernel='poly', gamma = 1e-6)
-    s = svm.SVC(kernel = "poly") 
-    # s = GaussianNB()
     data = Preprocessing.getData(f["data"])
     labels = Preprocessing.getLabels(f["labels"])
 
@@ -49,18 +42,23 @@ for i in range(first_file_index, last_file_index + 1):
     	if label in label_filter:
     		data_ot.append(d)
     		labels_ot.append(label)
-    # we train with 75% of the data and test with the rest
-    features = np.asarray(data_ot[: int(0.75 * len(data_ot))])
-    labels = np.asarray(labels_ot[: len(features)])
 
-    testing_features = np.asarray( data_ot[len(features):])
-    testing_labels = np.asarray( labels_ot[len(features):])
+# from sklearn.decomposition import PCA
+# pca = PCA()
+# data_ot = pca.fit_transform(data_ot)
 
-    ones = len( np.where(np.asarray(labels_ot) == 1)[0] )
-    twos = len( np.where(np.asarray(labels_ot) == 2)[0] )
-    threes = len( np.where(np.asarray(labels_ot) == 3)[0] )
-    fours = len( np.where(np.asarray(labels_ot) == 4)[0] )
-    # threes = len(labels_ot) - ones
+# we train with 75% of the data and test with the rest
+features = np.asarray(data_ot[: int(0.75 * len(data_ot))])
+labels = np.asarray(labels_ot[: len(features)])
+
+testing_features = np.asarray( data_ot[len(features):])
+testing_labels = np.asarray( labels_ot[len(features):])
+
+ones = len( np.where(np.asarray(labels_ot) == 1)[0] )
+twos = len( np.where(np.asarray(labels_ot) == 2)[0] )
+threes = len( np.where(np.asarray(labels_ot) == 3)[0] )
+fours = len( np.where(np.asarray(labels_ot) == 4)[0] )
+# threes = len(labels_ot) - ones
 
 
 print("Training data : ",len(features), len(labels))
@@ -77,12 +75,34 @@ print("Twos in testing data : ", len(np.where(testing_labels == 2)[0])  )
 print("Threes in testing data : ", len(np.where(testing_labels == 3)[0])  )
 print("fours in testing data : ", len(np.where(testing_labels == 4)[0])  )
 
-s.fit(features, labels)
+clfs = [svm.SVC(), 
+        svm.SVR(),
+        svm.SVC(kernel = "rbf"),
+		svm.SVC(C=1.0, tol=1e-10, cache_size=600, kernel='rbf', gamma = 1e-6),
+		svm.SVC(C=1.0, tol=1e-10, cache_size=600, kernel='poly', gamma = 1e-6, degree = 70),
+		svm.SVC(kernel = "poly"),
+		GaussianNB(),
+		svm.LinearSVC()]
 
 
-c = 0
-for prediction, actual_label in zip(s.predict(testing_features), testing_labels):
-	print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
-	if(prediction == actual_label):
-		c+=1
-print(c, "Correct out of ", len(testing_labels)," Percesion: " ,c/len(testing_labels)*100 )
+for s in clfs:
+	print("_____")
+	print(s)
+    # s=svm.LinearSVC()
+    # s = svm.SVC()
+    # s = svm.SVR()
+    # s = svm.SVC(kernel = "rbf", class_weight = {1:0.15})
+    # s = svm.SVC(C=1.0, tol=1e-10, cache_size=600, kernel='rbf', gamma = 1e-6)
+    # s = svm.SVC(C=1.0, tol=1e-10, cache_size=600, kernel='poly', gamma = 1e-6)
+    # s = svm.SVC(kernel = "poly") 
+    # s = GaussianNB()
+
+	s.fit(features, labels)
+
+
+	c = 0
+	for prediction, actual_label in zip(s.predict(testing_features), testing_labels):
+		print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
+		if(prediction == actual_label):
+			c+=1
+	print(c, "Correct out of ", len(testing_labels)," Percesion: " ,c/len(testing_labels)*100 )
