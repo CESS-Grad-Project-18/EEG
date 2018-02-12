@@ -26,7 +26,7 @@ def sub(values):
     return diff
 
 
-def getData(data): # data of a single person file
+def processReadings(data): # data of a single person file
     t = np.linspace(0, 63, 8064)
     readings = []
     for j in range(len(data)):   # loop over each video
@@ -42,7 +42,7 @@ def getData(data): # data of a single person file
             Then we sum it up.
             """
 
-            # Band Passing
+            # Band Passingy
             Delta_channel[(Omega > 4)] = 0
             Delta_channel[(Omega < 0.5)] = 0
             # Summing
@@ -72,7 +72,7 @@ def getData(data): # data of a single person file
         readings.append(np.array(sub(values)).flatten().tolist())
     return readings
 
-def getLabels(data):
+def processLabels(data, threshhold = 5.5):
     results=[]
 
     # extracting arousals and valencies they are the first two elements in each list of labels
@@ -91,7 +91,6 @@ def getLabels(data):
     """
 
     for i in range(len(results)):
-        threshhold = 5.5
         if results[i][0] >= threshhold and results[i][1] >= threshhold:
             results[i] = 1
         elif results[i][0] < threshhold and results[i][1] >= threshhold:  

@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import warnings
 from sklearn.preprocessing import RobustScaler
 import math
+import sys
 # from mlxtend.plotting import plot_decision_regions
 
 warnings.filterwarnings("ignore")
@@ -33,8 +34,8 @@ for i in [1]:
     f = pickle.load(file, encoding="latin1")
     file.close()
 
-    data = Preprocessing.getData(f["data"])
-    labels = Preprocessing.getLabels(f["labels"])
+    data = Preprocessing.processReadings(f["data"])
+    labels = Preprocessing.processLabels(f["labels"])
 
 
     label_filter = [1,2,3,4]
@@ -48,6 +49,8 @@ for i in [1]:
 # data_ot = pca.fit_transform(data_ot)
 
 # we train with 75% of the data and test with the rest
+print("total:", np.array(data_ot).shape)
+
 features = np.asarray(data_ot[: int(0.75 * len(data_ot))])
 labels = np.asarray(labels_ot[: len(features)])
 
@@ -83,8 +86,11 @@ clfs = [svm.SVC(),
 		svm.SVC(kernel = "poly"),
 		GaussianNB(),
 		svm.LinearSVC()]
+print([features[0][0]])
 
-
+print("to fit",features.shape)
+print(type(features))
+sys.exit()
 for s in clfs:
 	print("_____")
 	print(s)
