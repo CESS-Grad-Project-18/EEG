@@ -4,8 +4,8 @@ import math
 from scipy.signal import lfilter, firwin as fir1
 from scipy.fftpack import rfft, fftfreq, fft
 import warnings
-calcMethod = "DE"
-SymetricMethod = "None"
+calcMethod = "TR"
+SymetricMethod = "DCAU"
 
 def SymetricCalc(values):
     if(SymetricMethod == "None"):
@@ -23,10 +23,9 @@ def FilterData(data,lower,higher):
     Fn = Fs/2
     freq = np.array([lower, higher])/Fn
     coeff = fir1(numtaps, freq, pass_zero=False)
-    filtered_signal = fft(lfilter(coeff, 1.0, data))
-    return filtered_signal
-    # for i in range(np.size(signal,1))
-        # f_d[i, :] = fft(lfilter(coeff, 1.0, signal))
+    #filtered_signal = lfilter(coeff, 1.0, signal)
+    for i in range(np.size(signal,1))
+        f_d[i, :] = fft(lfilter(coeff, 1.0, signal))
 
 def BandCalc(band):
     if(calcMethod == "DE"):
@@ -99,21 +98,8 @@ def getData(data):
     for j in range(len(data)):    #LOOP ON VIDEOS
         values =[]
         for i in range(40):       #LOOP ON CHANNELS
-            Delta_channel = FilterData(data[j][i],0.5,4)
-            delta = BandCalc(Delta_channel)
-
-            Gamma_channel = FilterData(data[j][i], 30, 50);
-            gamma = BandCalc(Gamma_channel)
-
-            Alpha_channel = FilterData(data[j][i], 8, 13);
-            alpha = BandCalc(Alpha_channel)
-
-            Beta_channel = FilterData(data[j][i], 13, 30);
-            beta = BandCalc(Beta_channel)
-
-            Theta_channel = FilterData(data[j][i], 4, 8);
-            theta = BandCalc(Theta_channel)
-
+            
+            #FilterData(data[j][i],0.5,4)
             """transformed_signal = np.abs(np.fft.fftshift(np.fft.fft(data[j][i])))
             Omega = fftfreq(len(transformed_signal), d=t[1] - t[0])
             Delta_channel = transformed_signal.copy()
