@@ -12,7 +12,8 @@ class EmotivWriter(object):
     Write data from headset to output. CSV file for now.
     """
 
-    def __init__(self, file_name, mode="csv", header_row=None, chunk_writes=True, chunk_size=32, **kwargs):
+    def __init__(self, file_name, mode="csv", header_row=None, chunk_writes=True, chunk_size=32, verbose=False,
+                 **kwargs):
         self.mode = mode
         self.lock = Lock()
         self.data = Queue()
@@ -26,6 +27,7 @@ class EmotivWriter(object):
         self.thread.setDaemon(True)
         self._stop_signal = False
         self._stop_notified = False
+        self.verbose = verbose
 
     def start(self):
         """
@@ -82,23 +84,27 @@ class EmotivWriter(object):
                         else:
                             data = next_task.data
                         if sys.version_info >= (3, 0):
-                            if type(data) == str:
-                                data = bytes(data, encoding='latin-1')
+                            # Values are int
+                            data = ','.join([str(value) for value in data])
                         else:
                             if type(data) == str:
-                                data = [ord(char) for char in data]
-                        data_to_write = [str(next_task.timestamp), data]
+                                data = ','.join([str(ord(char)) for char in data])
+                            else:
+                                # Writing encrypted.
+                                data = ','.join([char for char in data])
+                        data_to_write = ','.join([str(next_task.timestamp), data])
+                        data_to_write += '\n'
                     if data_buffer is not None:
                         data_buffer.append(data_to_write)
                         if len(data_buffer) >= data_buffer_size - 1:
-                            # print(data_buffer)
-                            output_file.writelines(str(data_buffer))
+                            output_file.writelines(data_buffer)
                             data_buffer = []
                     else:
                         output_file.write(data_to_write)
 
             except Exception as ex:
-                print(ex.message)
+                if self.verbose:
+                    print("Error: {}".format(ex.message))
             self.lock.acquire()
             if self._stop_signal:
                 print("Writer thread stopping...")

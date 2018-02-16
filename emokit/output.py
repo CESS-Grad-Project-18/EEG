@@ -3,6 +3,7 @@ import os
 import time
 from threading import Thread, Lock
 
+from .packet import EmotivExtraPacket
 from .python_queue import Queue
 from .sensors import sensors_mapping
 from .util import get_quality_scale_level, system_platform
@@ -13,7 +14,7 @@ class EmotivOutput(object):
         Write output to console.
     """
 
-    def __init__(self, serial_number="", old_model=False):
+    def __init__(self, serial_number="", old_model=False, verbose=False):
         self.tasks = Queue()
         self.running = True
         self.stopped = False
@@ -24,7 +25,8 @@ class EmotivOutput(object):
         self.serial_number = serial_number
         self.old_model = old_model
         self.lock = Lock()
-        self.thread = Thread(target=self.run)
+        self.verbose = verbose
+        self.thread = Thread(target=self.run, kwargs={'verbose': self.verbose})
         self.thread.setDaemon(True)
 
     def start(self):
@@ -43,7 +45,7 @@ class EmotivOutput(object):
         self._stop_signal = True
         self.lock.release()
 
-    def run(self, source=None):
+    def run(self, source=None, verbose=False):
         """Do not call explicitly, called upon initialization of class"""
         # self.lock.acquire()
         dirty = False
@@ -59,15 +61,17 @@ class EmotivOutput(object):
             self.lock.release()
             while not self.tasks.empty():
                 next_task = self.tasks.get_nowait()
+
                 if next_task.packet_received:
                     self.packets_received += 1
 
                 if next_task.packet_decrypted:
                     self.packets_processed += 1
-                    if next_task.packet_data.battery is not None:
+                    if type(next_task.packet_data) != EmotivExtraPacket:
+                        if next_task.packet_data.battery is not None:
+                            battery = next_task.packet_data.battery
                         last_sensors = next_task.packet_data.sensors
-                        battery = next_task.packet_data.battery
-
+                        # print(type(next_task.packet_data))
                 if time.time() - tick_time > 1:
                     tick_time = time.time()
                     packets_received_since_last_update = self.packets_received - last_packets_received
@@ -75,12 +79,32 @@ class EmotivOutput(object):
                     last_packets_decrypted = self.packets_processed
                     last_packets_received = self.packets_received
                     dirty = True
-                if dirty:
-                    if system_platform == "Windows":
-                        os.system('cls')
-                    else:
-                        os.system('clear')
-                    print(output_template.format(
+                if dirty or verbose:
+                    if not verbose:
+                        if system_platform == "Windows":
+                            os.system('cls')
+                        else:
+                            os.system('clear')
+                    if battery is None:
+                        # TODO: Figure out why battery is None, probably just because the counter
+                        #  hasn't rolled to the battery counter yet. except for new devices apparently.
+                        battery = 0
+                    print("F3 value: " + str(last_sensors['F3']['value']) + "\n"
+                          + "FC5 value: " + str(last_sensors['FC5']['value']) + "\n"
+                          + "AF3 value: " + str(last_sensors['AF3']['value']) + "\n"
+                          + "F7 value: " + str(last_sensors['F7']['value']) + "\n"
+                          + "T7 value: " + str(last_sensors['T7']['value']) + "\n"
+                          + "P7 value: " + str(last_sensors['P7']['value']) + "\n"
+                          + "O1 value: " + str(last_sensors['O1']['value']) + "\n"
+                          + "O2 value: " + str(last_sensors['O2']['value']) + "\n"
+                          + "P8 value: " + str(last_sensors['P8']['value']) + "\n"
+                          + "T8 value: " + str(last_sensors['T8']['value']) + "\n"
+                          + "F8 value: " + str(last_sensors['F8']['value']) + "\n"
+                          + "AF4 value: " + str(last_sensors['AF4']['value']) + "\n"
+                          + "FC6 value: " + str(last_sensors['FC6']['value']) + "\n"
+                          + "F4 value: " + str(last_sensors['F4']['value']) + "\n" +
+                          "Sampling rate: " + str(packets_received_since_last_update) + "\n")
+                    """ print(output_template.format(
                         serial_number=self.serial_number,
                         f3_value=last_sensors['F3']['value'],
                         fc5_value=last_sensors['FC5']['value'],
@@ -147,7 +171,7 @@ class EmotivOutput(object):
                         received=str(self.packets_received),
                         processed=str(self.packets_processed),
                         old_model=self.old_model
-                    ))
+                    )) """
                     dirty = False
             self.lock.acquire()
             if self._stop_signal:
@@ -162,20 +186,20 @@ Emokit - v0.0.8 SN: {serial_number}  Old Model: {old_model}
 +========================================================+
 | Sensor |   Value  | Quality  | Quality L1 | Quality L2 |
 +--------+----------+----------+------------+------------+
-|   F3   | {f3_value:^8} | {f3_quality:^8} |  {f3_quality_old:^8}  |  {f3_quality_new:^8}  |
-|   FC5  | {fc5_value:^8} | {fc5_quality:^8} |  {fc5_quality_old:^8}  |  {fc5_quality_new:^8}  |
-|   AF3  | {af3_value:^8} | {af3_quality:^8} |  {af3_quality_old:^8}  |  {af3_quality_new:^8}  |
-|   F7   | {f7_value:^8} | {f7_quality:^8} |  {f7_quality_old:^8}  |  {f7_quality_new:^8}  |
-|   T7   | {t7_value:^8} | {t7_quality:^8} |  {t7_quality_old:^8}  |  {t7_quality_new:^8}  |
-|   P7   | {p7_value:^8} | {p7_quality:^8} |  {p7_quality_old:^8}  |  {p7_quality_new:^8}  |
-|   O1   | {o1_value:^8} | {o1_quality:^8} |  {o1_quality_old:^8}  |  {o1_quality_new:^8}  |
-|   O2   | {o2_value:^8} | {o2_quality:^8} |  {o2_quality_old:^8}  |  {o1_quality_new:^8}  |
-|   P8   | {p8_value:^8} | {p8_quality:^8} |  {p8_quality_old:^8}  |  {p8_quality_new:^8}  |
-|   T8   | {t8_value:^8} | {t8_quality:^8} |  {t8_quality_old:^8}  |  {t8_quality_new:^8}  |
-|   F8   | {f8_value:^8} | {f8_quality:^8} |  {f8_quality_old:^8}  |  {f8_quality_new:^8}  |
-|   AF4  | {af4_value:^8} | {af4_quality:^8} |  {af4_quality_old:^8}  |  {af4_quality_new:^8}  |
-|   FC6  | {fc6_value:^8} | {fc6_quality:^8} |  {fc6_quality_old:^8}  |  {fc6_quality_new:^8}  |
-|   F4   | {f4_value:^8} | {f4_quality:^8} |  {f4_quality_old:^8}  |  {f4_quality_new:^8}  |
+|   F3   | {f3_value:^8.10f} | {f3_quality:^8} |  {f3_quality_old:^8}  |  {f3_quality_new:^8}  |
+|   FC5  | {fc5_value:^8.10f} | {fc5_quality:^8} |  {fc5_quality_old:^8}  |  {fc5_quality_new:^8}  |
+|   AF3  | {af3_value:^8.10f} | {af3_quality:^8} |  {af3_quality_old:^8}  |  {af3_quality_new:^8}  |
+|   F7   | {f7_value:^8.10f} | {f7_quality:^8} |  {f7_quality_old:^8}  |  {f7_quality_new:^8}  |
+|   T7   | {t7_value:^8.10f} | {t7_quality:^8} |  {t7_quality_old:^8}  |  {t7_quality_new:^8}  |
+|   P7   | {p7_value:^8.10f} | {p7_quality:^8} |  {p7_quality_old:^8}  |  {p7_quality_new:^8}  |
+|   O1   | {o1_value:^8.10f} | {o1_quality:^8} |  {o1_quality_old:^8}  |  {o1_quality_new:^8}  |
+|   O2   | {o2_value:^8.10f} | {o2_quality:^8} |  {o2_quality_old:^8}  |  {o1_quality_new:^8}  |
+|   P8   | {p8_value:^8.10f} | {p8_quality:^8} |  {p8_quality_old:^8}  |  {p8_quality_new:^8}  |
+|   T8   | {t8_value:^8.10f} | {t8_quality:^8} |  {t8_quality_old:^8}  |  {t8_quality_new:^8}  |
+|   F8   | {f8_value:^8.10f} | {f8_quality:^8} |  {f8_quality_old:^8}  |  {f8_quality_new:^8}  |
+|   AF4  | {af4_value:^8.10f} | {af4_quality:^8} |  {af4_quality_old:^8}  |  {af4_quality_new:^8}  |
+|   FC6  | {fc6_value:^8.10f} | {fc6_quality:^8} |  {fc6_quality_old:^8}  |  {fc6_quality_new:^8}  |
+|   F4   | {f4_value:^8.10f} | {f4_quality:^8} |  {f4_quality_old:^8}  |  {f4_quality_new:^8}  |
 |   X    | {x:^8} |   N/A    |    N/A     |    N/A     |
 |   Y    | {y:^8} |   N/A    |    N/A     |    N/A     |
 |   Z    | {z:^8} |   N/A    |    N/A     |    N/A     |

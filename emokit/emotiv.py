@@ -9,12 +9,12 @@ from time import time
 
 from .decrypter import EmotivCrypto
 from .output import EmotivOutput
-from .packet import EmotivPacket
+from .packet import EmotivNewPacket, EmotivOldPacket, EmotivExtraPacket
 from .python_queue import Queue
 from .reader import EmotivReader
 from .sensors import sensors_mapping
 from .tasks import EmotivOutputTask, EmotivWriterTask
-from .util import path_checker, system_platform, values_header
+from .util import path_checker, system_platform, values_header, is_extra_data
 from .writer import EmotivWriter
 
 
@@ -28,7 +28,8 @@ class Emotiv(object):
     # TODO: Add filters for facial expressions, muscle contractions.
     def __init__(self, display_output=False, serial_number=None, is_research=False, write=False,
                  write_encrypted=False, write_decrypted=False, write_values=True, input_source="emotiv",
-                 sys_platform=system_platform, verbose=False, output_path=None, chunk_writes=True, chunk_size=32):
+                 sys_platform=system_platform, verbose=False, output_path=None, chunk_writes=True, chunk_size=32,
+                 force_epoc_mode=False, force_old_crypto=False):
         """
         Sets up initial values.
 
@@ -36,7 +37,7 @@ class Emotiv(object):
         :param serial_number - Specify serial_number, needed to decrypt packets for raw data reader and special cases.
         :param is_research - Is EPOC headset research edition? Doesn't seem to work even if it is.
         :param write - Write data to csv.
-        :param write_encrypted - Write encrypted data
+        :param write_encrypted - Write encrypted data, may impact read performance.
         :param write_values - Write decrypted sensor data, True overwrites exporting data from dongle pre-processing.
         :param input_source - Source to read from, emotiv or a file name
                    (must be a csv, exported from emokit or following our format)
@@ -50,6 +51,7 @@ class Emotiv(object):
 
         """
         print("Initializing Emokit...")
+        self.new_format = False
         self.running = False
         self.chunk_writes = chunk_writes
         self.chunk_size = chunk_size
@@ -96,6 +98,8 @@ class Emotiv(object):
         self.decrypted_writer = None
         self.value_writer = None
         self.output_path = output_path
+        self.force_epoc_mode = force_epoc_mode
+        self.force_old_crypto = force_old_crypto
         self.crypto = None
         # Setup the crypto thread, if we are reading from an encrypted data source.
 
@@ -110,7 +114,7 @@ class Emotiv(object):
     def initialize_output(self):
         print("Initializing Output Thread...")
         if self.display_output:
-            self.output = EmotivOutput(serial_number=self.serial_number, old_model=self.old_model)
+            self.output = EmotivOutput(serial_number=self.serial_number, old_model=self.old_model, verbose=self.verbose)
 
     def initialize_reader(self):
         print("Initializing Reader Thread...")
@@ -125,7 +129,7 @@ class Emotiv(object):
                 self.read_encrypted = False
                 if self.input_source.startswith('emotiv_values'):
                     self.read_values = True
-            self.reader = EmotivReader(file_name=self.input_source, mode="csv")
+            self.reader = EmotivReader(file_name=self.input_source, mode="csv", new_format=self.new_format)
             # Make sure the reader still has the serial number set, since we won't be obtaining it from the headset.
             self.reader.serial_number = self.serial_number
         else:
@@ -178,7 +182,8 @@ class Emotiv(object):
     def initialize_crypto(self):
         print("Initializing Crypto Thread...")
         if self.read_encrypted:
-            self.crypto = EmotivCrypto(self.serial_number, self.is_research, verbose=self.verbose)
+            self.crypto = EmotivCrypto(self.serial_number, self.is_research, verbose=self.verbose,
+                                       force_epoc_mode=self.force_epoc_mode, force_old_crypto=self.force_old_crypto)
 
     def start(self):
         """
@@ -218,7 +223,7 @@ class Emotiv(object):
         :param message: Message to log/print
         """
         if self.display_output and self.verbose:
-            print("%s" % message)
+            print("Log: %s" % message)
 
     def run(self):
         """ Do not call explicitly, called upon initialization of class or self.start()
@@ -227,6 +232,8 @@ class Emotiv(object):
         :param crypto: EmotivCrypto class
         """
         self.initialize_reader()
+        if self.serial_number.startswith("UD2016") and not self.force_epoc_mode:
+            self.new_format = True
         self.initialize_writer()
         self.initialize_crypto()
         self.initialize_output()
@@ -255,32 +262,54 @@ class Emotiv(object):
                 self.packets_received += 1
                 if not self.read_encrypted:
                     if not self.read_values:
-                        new_packet = EmotivPacket(reader_task.data)
+                        extra_data = False
+                        if self.new_format:
+                            extra_data = is_extra_data(reader_task.data)
+                            if extra_data:
+                                new_packet = EmotivExtraPacket(reader_task.data, verbose=self.verbose)
+                            else:
+                                new_packet = EmotivNewPacket(reader_task.data, verbose=self.verbose)
+                        else:
+                            new_packet = EmotivOldPacket(reader_task.data, verbose=self.verbose)
                         if new_packet.battery is not None:
                             self.battery = new_packet.battery
                         self.packets.put_nowait(new_packet)
                         self.packets_processed += 1
                         if self.display_output:
-                            self.output.tasks.put_nowait(EmotivOutputTask(received=True,
-                                                                          decrypted=True,
-                                                                          data=EmotivPacket(raw_data)))
+                            if self.new_format:
+                                if extra_data:
+                                    self.output.tasks.put_nowait(EmotivOutputTask(received=True,
+                                                                                  decrypted=True,
+                                                                                  data=EmotivExtraPacket(raw_data)))
+                                else:
+                                    self.output.tasks.put_nowait(EmotivOutputTask(received=True,
+                                                                                  decrypted=True,
+                                                                                  data=EmotivNewPacket(raw_data)))
+                            else:
+                                self.output.tasks.put_nowait(EmotivOutputTask(received=True,
+                                                                              decrypted=True,
+                                                                              data=EmotivOldPacket(raw_data)))
                     else:
                         # TODO: Implement read from values.
                         pass
                 else:
                     if self.input_source != 'emotiv' and self.read_encrypted:
+                        if len(reader_task.data) == 33:
+                            reader_task.data = reader_task.data[1:]
                         if len(reader_task.data) != 32:
+                            print("Reader task: {}".format(len(reader_task.data)))
                             self.reader.stop()
                             self.crypto.stop()
                             self.running = False
                             raise ValueError("Reached end of data or corrupted data.")
                         # Decode binary data stored in file.
-
                         if sys.version_info >= (3, 0):
                             raw_data = [int(bytes(item, encoding='latin-1').decode(), 2) for item in reader_task.data]
                         else:
-                            raw_data = [int(item.decode(), 2) for item in reader_task.data]
+                            raw_data = [int(item, 2) for item in reader_task.data]
+
                         raw_data = ''.join(map(chr, raw_data[:]))
+                        reader_task.data = raw_data
 
                     if self.display_output:
                         self.output.tasks.put_nowait(EmotivOutputTask(received=True))
@@ -295,22 +324,58 @@ class Emotiv(object):
                                     put_nowait(EmotivWriterTask(decrypted_task.data, values=False,
                                                                 timestamp=decrypted_task.timestamp))
                     self.packets_processed += 1
-                    new_packet = EmotivPacket(decrypted_task.data, timestamp=decrypted_task.timestamp)
+                    extra_data = False
+                    if self.new_format:
+                        extra_data = is_extra_data(decrypted_task.data)
+                        if extra_data:
+                            new_packet = EmotivExtraPacket(decrypted_task.data, timestamp=decrypted_task.timestamp)
+                        else:
+                            if self.force_epoc_mode:
+                                new_packet = EmotivOldPacket(decrypted_task.data, timestamp=decrypted_task.timestamp)
+                            else:
+                                new_packet = EmotivNewPacket(decrypted_task.data, timestamp=decrypted_task.timestamp)
+                    else:
+                        new_packet = EmotivOldPacket(decrypted_task.data, timestamp=decrypted_task.timestamp)
+                    # print(new_packet.counter)
+                    # data = []
+                    # for c in new_packet.raw_data:
+                    #    if c > 0:
+                    #        data.append(ord(c))
+                    # print(data)
+
+                    # values = [new_packet.sensors[name]['value'] for name in
+                    #          'AF3 F7 F3 FC5 T7 P7 O1 O2 P8 T8 FC6 F4 F8 AF4'.split(' ')]
+                    # cy = struct.pack('>' + str(len(values)) + 'h', *values)
+                    # print(cy)
+
                     if self.display_output:
-                        self.output.tasks.put_nowait(EmotivOutputTask(decrypted=True,
-                                                                      data=EmotivPacket(decrypted_task.data)))
-                    if new_packet.battery is not None:
-                        self.battery = new_packet.battery
+                        if self.new_format:
+                            if extra_data:
+                                self.output.tasks.put_nowait(EmotivOutputTask(decrypted=True,
+                                                                              data=EmotivExtraPacket(
+                                                                                  decrypted_task.data)))
+
+                            else:
+                                self.output.tasks.put_nowait(EmotivOutputTask(decrypted=True,
+                                                                              data=EmotivNewPacket(
+                                                                                  decrypted_task.data)))
+                        else:
+                            self.output.tasks.put_nowait(EmotivOutputTask(decrypted=True,
+                                                                          data=EmotivOldPacket(decrypted_task.data)))
+                    if type(new_packet) == EmotivOldPacket:
+                        if new_packet.battery is not None:
+                            self.battery = new_packet.battery
                     self.packets.put_nowait(new_packet)
                     if self.write:
                         if self.write_values:
                             if self.value_writer is not None:
-                                self.value_writer.data.put_nowait(
-                                    EmotivWriterTask(
-                                        data=new_packet.sensors.copy(),
-                                        timestamp=decrypted_task.timestamp
+                                if not extra_data:
+                                    self.value_writer.data.put_nowait(
+                                        EmotivWriterTask(
+                                            data=new_packet.sensors.copy(),
+                                            timestamp=decrypted_task.timestamp
+                                        )
                                     )
-                                )
             tick_diff = time() - tick_time
             if tick_diff >= 1:
                 tick_time = time()
