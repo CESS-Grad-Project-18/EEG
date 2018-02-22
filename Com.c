@@ -7,11 +7,16 @@
 
 const Com_ConfigType *ComConfig;
 ComSignalEndianess_type Com_SystemEndianness;
+static Com_StatusType initStatus = COM_UNINIT;
 static const uint32_t endian_test  = 0xdeadbeefU;
 
 
 /* Startup and Control Services*/
 void Com_Init(const Com_ConfigType * config){
+	if(config == NULL) {
+		Det_ReportError(COM_INIT_ID, COM_E_PARAM_POINTER);
+		return;
+	}
 	ComConfig = config;
 	uint8 endian_byte = *(const uint8 *)&endian_test; /* Get last byte*/
 	if(endian_byte == 0xef ){ 
@@ -24,10 +29,22 @@ void Com_Init(const Com_ConfigType * config){
 		Com_SystemEndianness = COM_OPAQUE;
 		assert(0); /* Check */
 	}
+	if(1){
+		initStatus = COM_INIT;
+	}
 /* TODO: Implement */
 } /*SID 0x01*/
 
 void Com_DeInit(void){
+	if(initStatus != COM_INIT){
+		Det_ReportError(COM_DEINIT_ID, COM_E_UNINIT);
+		return;
+	}
+	/*for ipdu in ipdus{
+		clear;
+	}
+	*/
+	initStatus = COM_UNINIT;
 /* TODO: Implement */
 } /*SID 0x02*/
 
@@ -40,7 +57,7 @@ void Com_ReceptionDMControl(Com_IpduGroupVector ipduGroupVector){
 } /*SID 0x06*/
 
 Com_StatusType Com_GetStatus(void){ 
-	return ComConfig->ComStatus; /* Check */
+	return initStatus;
 /* TODO: Implement */
 }/*SID 0x07, returns COM_INIT or COM_UNINIT*/
 
