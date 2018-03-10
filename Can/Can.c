@@ -1,30 +1,6 @@
-/* -------------------------------- Arctic Core ------------------------------
- * Arctic Core - the open source AUTOSAR platform http://arccore.com
- *
- * Copyright (C) 2009  ArcCore AB <contact@arccore.com>
- *
- * This source code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by the
- * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- * -------------------------------- Arctic Core ------------------------------*/
-
-
-
-
-
-
-
-
 #include "Can.h"
 
-#ifndef USE_CAN_STUB
-#include "Cpu.h"
-#include "Mcu.h"
+
 #include "CanIf_Cbk.h"
 #if defined(USE_DET)
 #include "Det.h"
@@ -35,43 +11,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Os.h"
-#include "isr.h"
-#include "arc.h"
-
-#include "CanSocket.h"
-
-#define USE_CAN_STATISTICS      STD_OFF
-
-/* CONFIGURATION NOTES
- * ------------------------------------------------------------------
- * - CanHandleType must be CAN_ARC_HANDLE_TYPE_BASIC
- *   i.e. CanHandleType=CAN_ARC_HANDLE_TYPE_FULL NOT supported
- *   i.e CanIdValue is NOT supported
- * - All CanXXXProcessing must be CAN_ARC_PROCESS_TYPE_INTERRUPT
- *   ie CAN_ARC_PROCESS_TYPE_POLLED not supported
- * - HOH's for Tx are global and Rx are for each controller
- */
-
-/* IMPLEMENTATION NOTES
- * -----------------------------------------------
- * - A HOH us unique for a controller( not a config-set )
- * - Hrh's are numbered for each controller from 0
- * - Only one transmit mailbox is used because otherwise
- *   we cannot use tx_confirmation since there is no way to know
- *   which mailbox caused the tx interrupt. TP will need this feature.
- * - Sleep,wakeup not fully implemented since other modules lack functionality
- */
-
-/* ABBREVATIONS
- *  -----------------------------------------------
- * - Can Hardware unit - One or multiple Can controllers of the same type.
- * - Hrh - HOH with receive definitions
- * - Hth - HOH with transmit definitions
- *
- */
-
-//-------------------------------------------------------------------
 
 #define GET_CONTROLLER_CONFIG(_controller)	\
         					&Can_Global.config->CanConfigSet->CanController[(_controller)]
@@ -445,7 +384,7 @@ static void Can_TxIsr(int unit) {
 #endif
 
 // This initiates ALL can controllers
-void Can_Init( const Can_ConfigType *config ) {
+void Can_Init(const Can_ConfigType *Config) {
   Can_UnitType *canUnit;
   const Can_ControllerConfigType *canHwConfig;
   uint8 ctlrId;
@@ -517,8 +456,7 @@ void Can_Init( const Can_ConfigType *config ) {
 }
 
 // Unitialize the module
-void Can_DeInit()
-{
+void Can_DeInit(){
   Can_UnitType *canUnit;
   const Can_ControllerConfigType *canHwConfig;
   uint32 ctlrId;
@@ -794,31 +732,33 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
   return rv;
 }
 
-void Can_MainFunction_Read( void ) {
-
-	/* NOT SUPPORTED */
+void Can_MainFunction_Write(void) {
+    /* TODO: Implement */
 }
 
-void Can_MainFunction_BusOff( void ) {
+void Can_MainFunction_Read(void) {
+
+	/* TODO: Implement */
+}
+
+void Can_MainFunction_BusOff(void) {
   /* Bus-off polling events */
 
-	/* NOT SUPPORTED */
+	/* TODO: Implement */
 }
 
-void Can_MainFunction_Wakeup( void ) {
+void Can_MainFunction_Wakeup(void) {
   /* Wakeup polling events */
 
-	/* NOT SUPPORTED */
+	/* TODO: Implement */
 }
 
 
-void Can_MainFunction_Write( void ) {
-    /* NOT SUPPORTED */
+void Can_MainFunction_Mode(void) {
+    /* TODO: Implement */
 }
 
-void Can_MainFunction_Error( void ) {
-    /* NOT SUPPORTED */
-}
+
 
 
 /**
@@ -889,13 +829,15 @@ void Can_EnableControllerInterrupts( uint8 controller )
 
 
 // Hth - for Flexcan, the hardware message box number... .We don't care
-void Can_Cbk_CheckWakeup( uint8 controller ){}
+void Can_CheckWakeup(uint8 Controller){
+	
+}
 
-void Can_MainFunction_Write( void ){}
-void Can_MainFunction_Read( void ){}
-void Can_MainFunction_Error( void ){}
-void Can_MainFunction_BusOff( void ){}
-void Can_MainFunction_Wakeup( void ){}
+void Can_MainFunction_Write(void){}
+void Can_MainFunction_Read(void){}
+void Can_MainFunction_Error(void){}
+void Can_MainFunction_BusOff(void){}
+void Can_MainFunction_Wakeup(void){}
 
 void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat){}
 
