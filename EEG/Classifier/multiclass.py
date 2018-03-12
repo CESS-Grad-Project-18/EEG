@@ -56,13 +56,16 @@ arousaldata_ot = []
 arousallabels_ot = []
 arousaltest_ot = []
 arousaltestlabels_ot = []
-for i in range(1,33):
+
+data_ = []
+labels_ = []
+for i in range(1,11):
     
     
     if i<10:
-        file = open("C:/Users/HP/Downloads/data_preprocessed_python/data_preprocessed_python/s0"+str(i)+".dat", "rb")
+        file = open("./s0"+str(i)+".dat", "rb")
     else:
-        file = open("C:/Users/HP/Downloads/data_preprocessed_python/data_preprocessed_python/s" +str(i) + ".dat", "rb")
+        file = open("./s" +str(i) + ".dat", "rb")
 
     f = pickle.load(file, encoding="latin1")
     file.close()
@@ -76,12 +79,17 @@ for i in range(1,33):
     min_max_scaler = preprocessing.MinMaxScaler()
     data = min_max_scaler.fit_transform(data)
     labels = Preprocessing.getLabels(f["labels"])
+
+
     #z = StandardScaler()
     #data = z.fit_transform(data)
     #data = z.fit_transform(data)
     ##########################################
     shuffler = list(zip(data,labels))
     random.shuffle(shuffler)
+    data_.append( data )
+    labels_.append(labels)
+    continue
     data, labels = zip(*shuffler)
     ##########################################
     for i in range(len(labels)):
@@ -168,88 +176,92 @@ for i in range(1,33):
     valencetest_ot,valencetestlabels_ot = zip(*shuffler)
     ######################################"""
 
+import WIPClfs
+for d,l in zip(data_,labels_):
+    clf = WIPClfs.MultiClass(d,l)
+    clf.train()
+    clf.predict()
+
+
+# print("USING SVC")
+# print("\n//////////////////////////////AROUSAL/////////////////////////////////\n")
+# #print("Training data : ",len(arousaldata_ot))
+# #print("Testing Data : ",len(arousaltest_ot))
+# #print("High Arousal : ",ha," Low arousal : ",la)
+# ##print(test_ot[0])
 
 
 
-print("USING SVC")
-print("\n//////////////////////////////AROUSAL/////////////////////////////////\n")
-#print("Training data : ",len(arousaldata_ot))
-#print("Testing Data : ",len(arousaltest_ot))
-#print("High Arousal : ",ha," Low arousal : ",la)
-##print(test_ot[0])
-
-
-
-s1 = sklearn.svm.SVC(kernel="poly", degree=1)
-#s1=sklearn.naive_bayes.MultinomialNB()
-#s1=sklearn.tree.DecisionTreeClassifier()
-#s1=sklearn.ensemble.RandomForestClassifier()
-#s1 = neighbors.KNeighborsClassifier()
-#s1=ensemble.AdaBoostClassifier(learning_rate=0.5)
-#s1 = neural_network.MLPClassifier()
-
-
-
-
-
-s1.fit(np.array(arousaldata_ot), np.array(arousallabels_ot))
-
-c =0
-for k in range(len(arousaltest_ot)):
-    pr = s1.predict(np.array([arousaltest_ot[k]]))
-    #print("Predicted: ", pr[0], " ,Correct Value: ", arousaltestlabels_ot[k] )
-    if pr[0] == arousaltestlabels_ot[k]:
-        c+=1
-print(c, "Correct out of ", len(arousaltestlabels_ot)," Percesion: " ,c/len(arousaltestlabels_ot)*100 )
-carousal += c/len(arousaltestlabels_ot)*100
-
-print("\n//////////////////////////////VALENCE/////////////////////////////////\n")
-#print("Training data : ",len(valencedata_ot))
-#print("Testing Data : ",len(valencetest_ot))
-#print("High Valence : ",hv," Low arousal : ",lv)
+# s1 = sklearn.svm.SVC(kernel="poly", degree=1)
+# #s1=sklearn.naive_bayes.MultinomialNB()
+# #s1=sklearn.tree.DecisionTreeClassifier()
+# #s1=sklearn.ensemble.RandomForestClassifier()
+# #s1 = neighbors.KNeighborsClassifier()
+# #s1=ensemble.AdaBoostClassifier(learning_rate=0.5)
+# #s1 = neural_network.MLPClassifier()
 
 
 
 
 
-s2 = sklearn.svm.SVC(kernel="poly", degree=1)
-#s2 = sklearn.naive_bayes.GaussianNB()
-#s2 = sklearn.tree.DecisionTreeClassifier()
-#s2 = sklearn.ensemble.RandomForestClassifier()
-#s2 = ensemble.AdaBoostClassifier(learning_rate=0.5)
-#s2 = neighbors.KNeighborsClassifier()
-#s2 = neural_network.MLPClassifier()
+# s1.fit(np.array(arousaldata_ot), np.array(arousallabels_ot))
+
+# c =0
+# for k in range(len(arousaltest_ot)):
+#     pr = s1.predict(np.array([arousaltest_ot[k]]))
+#     #print("Predicted: ", pr[0], " ,Correct Value: ", arousaltestlabels_ot[k] )
+#     if pr[0] == arousaltestlabels_ot[k]:
+#         c+=1
+# print(c, "Correct out of ", len(arousaltestlabels_ot)," Percesion: " ,c/len(arousaltestlabels_ot)*100 )
+# carousal += c/len(arousaltestlabels_ot)*100
+
+# print("\n//////////////////////////////VALENCE/////////////////////////////////\n")
+# #print("Training data : ",len(valencedata_ot))
+# #print("Testing Data : ",len(valencetest_ot))
+# #print("High Valence : ",hv," Low arousal : ",lv)
 
 
 
 
-s2.fit(np.array(valencedata_ot), np.array(valencelabels_ot))
 
-c =0
-for k in range(len(valencetest_ot)):
-    pr = s1.predict(np.array([valencetest_ot[k]]))
-    #print("Predicted: ", pr[0], " ,Correct Value: ", valencetestlabels_ot[k] )
-    if pr[0] == valencetestlabels_ot[k]:
-        c+=1
-print(c, "Correct out of ", len(valencetestlabels_ot)," Percesion: " ,c/len(valencetestlabels_ot)*100 )
-cvalence += c/len(valencetestlabels_ot)*100
+# s2 = sklearn.svm.SVC(kernel="poly", degree=1)
+# #s2 = sklearn.naive_bayes.GaussianNB()
+# #s2 = sklearn.tree.DecisionTreeClassifier()
+# #s2 = sklearn.ensemble.RandomForestClassifier()
+# #s2 = ensemble.AdaBoostClassifier(learning_rate=0.5)
+# #s2 = neighbors.KNeighborsClassifier()
+# #s2 = neural_network.MLPClassifier()
 
 
-"""
-print("\n//////////////////////////COMBINING BOTH CLASSIFIERS////////////////////////////\n")
-r = min(len(valencetest_ot),len(arousaltest_ot))
-finaldata = data[-r:]
-finallabels = labels[-r:]
-c=0 
-for k in range(r):
-    arousalp = s1.predict(np.array([finaldata[k]]))
-    valencep = s2.predict(np.array([finaldata[k]]))
-    pr = combine(valencep[0],arousalp[0])
-    ##print("Predicted: ", pr, " ,Correct Value: ", finallabels[k] )
-    if pr == finallabels[k]:
-        c+=1
-print(c, "Correct out of ", r," Percesion: " ,(c/r) * 100 )
-ctotal += (c/r) * 100
-num+=1
-"""
+
+
+# s2.fit(np.array(valencedata_ot), np.array(valencelabels_ot))
+
+# c =0
+# for k in range(len(valencetest_ot)):
+#     pr = s1.predict(np.array([valencetest_ot[k]]))
+#     #print("Predicted: ", pr[0], " ,Correct Value: ", valencetestlabels_ot[k] )
+#     if pr[0] == valencetestlabels_ot[k]:
+#         c+=1
+# print(c, "Correct out of ", len(valencetestlabels_ot)," Percesion: " ,c/len(valencetestlabels_ot)*100 )
+# cvalence += c/len(valencetestlabels_ot)*100
+
+
+# """
+# print("\n//////////////////////////COMBINING BOTH CLASSIFIERS////////////////////////////\n")
+# r = min(len(valencetest_ot),len(arousaltest_ot))
+# finaldata = data[-r:]
+# finallabels = labels[-r:]
+# c=0 
+# for k in range(r):
+#     arousalp = s1.predict(np.array([finaldata[k]]))
+#     valencep = s2.predict(np.array([finaldata[k]]))
+#     pr = combine(valencep[0],arousalp[0])
+#     ##print("Predicted: ", pr, " ,Correct Value: ", finallabels[k] )
+#     if pr == finallabels[k]:
+#         c+=1
+# print(c, "Correct out of ", r," Percesion: " ,(c/r) * 100 )
+# ctotal += (c/r) * 100
+# num+=1
+# """
 
