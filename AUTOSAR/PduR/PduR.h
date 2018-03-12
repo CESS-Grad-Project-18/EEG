@@ -91,4 +91,24 @@ void PduR_Init(const PduR_PBConfigType* ConfigPtr); /* SID: 0x00 */
 void PduR_GetVersionInfo(Std_VersionInfoType* versionInfo); /* SID: 0x17 */
 uint32 PduR_GetConfigurationId(void); /* SID: 0x18 */
 
+
+/* CAN Interface functions */
+void PduR_CanIfRxIndication(PduIdType CanRxPduId, const uint8* CanSduPtr); /* SID: 0x01 */
+void PduR_CanIfTxConfirmation(PduIdType CanTxPduId); /* SID: 0x02 */
+BufReq_ReturnType PduR_CanTpProvideRxBuffer(PduIdType CanTpRxPduId, PduLengthType TpSduLength, PduInfoType **PduInfoPtr); /* SID: 0x03 */
+void PduR_CanTpRxIndication(PduIdType CanTpRxPduId, NotifResultType Result); /* SID: 0x04 */
+BufReq_ReturnType PduR_CanTpProvideTxBuffer(PduIdType CanTpTxPduId, PduInfoType **PduInfoPtr, uint16 Length); /* SID: 0x05 */
+void PduR_CanTpTxConfirmation(PduIdType CanTpTxPduId, NotifResultType Result); /* SID: 0x06*/
+
+/* COM */
+Std_ReturnType PduR_ComTransmit(PduIdType ComTxPduId, const PduInfoType *PduInfoPtr); /* SID: 0x15 */
+
+/* DCM */
+Std_ReturnType PduR_DcmTransmit(PduIdType DcmTxPduId, const PduInfoType *PduInfoPtr); /* SID: 0x16 */
+
+/* IPDUM */
+Std_ReturnType PduR_IpdumTransmit(PduIdType IpdumTxPduId, const PduInfoType *PduInfoPtr); /* SID: 0x19 */
+void PduR_IpdumTxConfirmation(PduIdType IpdumLoTxPduId) /* SID: 0x1A */
+void PduR_IpdumRxIndication(PduIdType IpdumLoRxPduId, const uint8 *IpdumSduPtr); /* SID: 0x1B */
+
 #endif /* PDUR_H */

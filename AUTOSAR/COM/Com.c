@@ -32,7 +32,7 @@ void Com_Init(const Com_ConfigType * config){
 	if(1){
 		initStatus = COM_INIT;
 	}
-/* TODO: Implement */
+/* TODO: Revise */
 } /*SID 0x01*/
 
 void Com_DeInit(void){
@@ -45,11 +45,26 @@ void Com_DeInit(void){
 	}
 	*/
 	initStatus = COM_UNINIT;
-/* TODO: Implement */
+/* TODO: Revise */
 } /*SID 0x02*/
 
 void Com_IpduGroupControl(Com_IpduGroupVector ipduGroupVector, boolean initialize){
-/* TODO: Implement */
+	if(COM_INIT != initStatus) {
+		Det_ReportError(COM_IPDUGROUPCONTROL_ID, COM_E_UNINIT);
+		return;
+	}
+    for (uint16 i = 0; !ComConfig->ComIPdu[i].Com_Arc_EOL; i++) {
+        const ComIPduGroup_type *const groupRefs = ComConfig->ComIPdu[i].ComIPduGroupRefs;
+        uint8 started = FALSE;
+        for(uint32 gri=0; (!groupRefs[gri].Com_Arc_EOL && !started); gri++){
+            uint8 byteIndex = groupRefs[gri].ComIPduGroupHandleId / 8;
+            uint8 bitIndex = groupRefs[gri].ComIPduGroupHandleId % 8;            
+            started |= ((ipduGroupVector[byteIndex] >> bitIndex) & 1u);
+        }
+        Com_Arc_Config.ComIPdu[i].Com_Arc_IpduStarted = started;
+    }
+}
+/* TODO: Revise */
 } /*SID 0x03*/
 
 void Com_ReceptionDMControl(Com_IpduGroupVector ipduGroupVector){
@@ -58,19 +73,43 @@ void Com_ReceptionDMControl(Com_IpduGroupVector ipduGroupVector){
 
 Com_StatusType Com_GetStatus(void){ 
 	return initStatus;
-/* TODO: Implement */
+/* TODO: Revise */
 }/*SID 0x07, returns COM_INIT or COM_UNINIT*/
 
 void Com_GetVersionInfo(Std_VersionInfoType* versioninfo){
-/* TODO: Implement */
+	if(versioninfo != NULL) {
+		versioninfo->vendorID =  COM_VENDOR_ID;
+		versioninfo->moduleID = COM_MODULE_ID;
+		versioninfo->sw_major_version = COM_SW_MAJOR_VERSION;
+		versioninfo->sw_minor_version =  COM_SW_MINOR_VERSION;
+		versioninfo->sw_patch_version =  COM_SW_PATCH_VERSION;
+	}
+/* TODO: Revise */
 }/*SID 0x09, Version out*/
 
 void Com_ClearIpduGroupVector(Com_IpduGroupVector ipduGroupVector){
-/* TODO: Implement */
+	if(initStatus != COM_INIT){
+		Det_ReportError(COM_CLEARIPDUGROUPVECTOR_ID, COM_E_UNINIT);
+		return;
+	}
+	memset(ipduGroupVector, 0, sizeof(Com_IpduGroupVector));
+/* TODO: Revise */
 } /*SID 0x1c*/
 
 void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType ipduGroupId, boolean bitval){
-/* TODO: Implement */
+	if(initStatus != COM_INIT){
+		Det_ReportError(COM_SETIPDUGROUP_ID, COM_E_UNINIT);
+		return;
+	}
+	uint8 byteIndex = ipduGroupId / 8;
+	uint8 bitIndex = ipduGroupId % 8;
+	if(bitval){
+		ipduGroupVector[byteIndex] |= (1u<<bitIndex);
+	}else{
+		ipduGroupVector[byteIndex] &= ~(1u<<bitIndex);
+	}
+}
+/* TODO: Revise */
 } /*SID 0x1d */
 
 
