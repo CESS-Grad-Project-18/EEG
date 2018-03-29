@@ -11,8 +11,8 @@
 typedef uint16 PduIdType;
 typedef uint16 PduLengthType;
 typedef struct {
-	uint8 *SduDataPtr;			// payload
-	PduLengthType SduLength;	// length of SDU
+	uint8 *SduDataPtr;			/* Payload */
+	PduLengthType SduLength;	/* Length of SDU */
 } PduInfoType;
 
 typedef enum {

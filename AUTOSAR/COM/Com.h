@@ -69,14 +69,26 @@ typedef enum {
 	COM_BIG_ENDIAN,
 	COM_LITTLE_ENDIAN,
 	COM_OPAQUE
-} ComSignalEndianness_type;
+} ComSignalEndianess_type;
 
 /* @req COM291 */
 /* reception deadline monitoring of the I-PDU using the smallest configured non zero timeout parameter */
 typedef enum {
-	COM_TIMEOUT_DATA_ACTION_NONE,
-	COM_TIMEOUT_DATA_ACTION_REPLACE
+	NONE,
+	REPLACE
 } ComRxDataTimeoutAction_type;
+
+typedef enum {
+	BOOLEAN,
+	UINT8,
+	UINT16,
+	UINT32,
+	UINT8_N,
+	UINT8_DYN,
+	SINT8,
+	SINT16,
+	SINT32
+} Com_SignalType;
 
 typedef uint16 Com_SignalIdType;
 typedef uint16 Com_SignalGroupIdType;
@@ -84,44 +96,79 @@ typedef uint16 Com_IpduGroupIdType;
 typedef uint8:1 Com_IpduGroupVector; /*Check*/
 typedef uint8 Com_ServiceIdType;
 
-#DEFINE COMServiceId_Init 0x01 
-#DEFINE COMServiceId_DeInit 0x02 
-#DEFINE COMServiceId_IpduGroupControl 0x03 
-#DEFINE COMServiceId_ReceptionDMControl 0x06 
-#DEFINE COMServiceId_GetStatus 0x07 
-#DEFINE COMServiceId_GetVersionInfo 0x09 
-#DEFINE COMServiceId_SendSignal 0x0A 
-#DEFINE COMServiceId_ReceiveSignal 0x0B 
-#DEFINE COMServiceId_UpdateShadowSignal 0x0C 
-#DEFINE COMServiceId_SendSignalGroup 0x0D 
-#DEFINE COMServiceId_ReceiveSignalGroup 0x0E 
-#DEFINE COMServiceId_ReceiveShadowSignal 0x0F 
-#DEFINE COMServiceId_InvalidateSignal 0x10 
-#DEFINE COMServiceId_InvalidateShadowSignal 0x16 
-#DEFINE COMServiceId_TriggerIPDUSend 0x17 
-#DEFINE COMServiceId_MainFunctionRx 0x18 
-#DEFINE COMServiceId_MainFunctionTx 0x19 
-#DEFINE COMServiceId_MainFunctionRouteSignals 0x1A 
-#DEFINE COMServiceId_InvalidateSignalGroup 0x1B
-#DEFINE COMServiceId_ClearIpduGroupVector 0x1C 
-#DEFINE COMServiceId_SetIpduGroup 0x1D 
-#DEFINE COMServiceId_SendDynSignal 0x21 
-#DEFINE COMServiceId_ReceiveDynSignal 0x22 
-#DEFINE COMServiceId_SendSignalGroupArray 0x23 
-#DEFINE COMServiceId_ReceiveSignalGroupArray 0x24 
-#DEFINE COMServiceId_SwitchIpduTxMode 0x27 
-#DEFINE COMServiceId_TriggerIPDUSendWithMetaData 0x28 
-#DEFINE COMServiceId_TxConfirmation 0x40 
-#DEFINE COMServiceId_TriggerTransmit 0x41 
-#DEFINE COMServiceId_RxIndication 0x42 
-#DEFINE COMServiceId_CopyTxData 0x43 
-#DEFINE COMServiceId_CopyRxData 0x44 
-#DEFINE COMServiceId_TpRxIndication 0x45 
-#DEFINE COMServiceId_StartOfReception 0x46 
-#DEFINE COMServiceId_TpTxConfirmation 0x48
+
+/* #define BOOLEAN bool
+#define UINT8 uint8
+#define UINT16 uint16
+#define UINT32 uint32
+#define UINT8_N uint8
+#define SINT8 sint8
+#define SINT16 sint16
+#define SINT32 sint32 */
+
+#define COMServiceId_Init 0x01 
+#define COMServiceId_DeInit 0x02 
+#define COMServiceId_IpduGroupControl 0x03 
+#define COMServiceId_ReceptionDMControl 0x06 
+#define COMServiceId_GetStatus 0x07 
+#define COMServiceId_GetVersionInfo 0x09 
+#define COMServiceId_SendSignal 0x0A 
+#define COMServiceId_ReceiveSignal 0x0B 
+#define COMServiceId_UpdateShadowSignal 0x0C 
+#define COMServiceId_SendSignalGroup 0x0D 
+#define COMServiceId_ReceiveSignalGroup 0x0E 
+#define COMServiceId_ReceiveShadowSignal 0x0F 
+#define COMServiceId_InvalidateSignal 0x10 
+#define COMServiceId_InvalidateShadowSignal 0x16 
+#define COMServiceId_TriggerIPDUSend 0x17 
+#define COMServiceId_MainFunctionRx 0x18 
+#define COMServiceId_MainFunctionTx 0x19 
+#define COMServiceId_MainFunctionRouteSignals 0x1A 
+#define COMServiceId_InvalidateSignalGroup 0x1B
+#define COMServiceId_ClearIpduGroupVector 0x1C 
+#define COMServiceId_SetIpduGroup 0x1D 
+#define COMServiceId_SendDynSignal 0x21 
+#define COMServiceId_ReceiveDynSignal 0x22 
+#define COMServiceId_SendSignalGroupArray 0x23 
+#define COMServiceId_ReceiveSignalGroupArray 0x24 
+#define COMServiceId_SwitchIpduTxMode 0x27 
+#define COMServiceId_TriggerIPDUSendWithMetaData 0x28 
+#define COMServiceId_TxConfirmation 0x40 
+#define COMServiceId_TriggerTransmit 0x41 
+#define COMServiceId_RxIndication 0x42 
+#define COMServiceId_CopyTxData 0x43 
+#define COMServiceId_CopyRxData 0x44 
+#define COMServiceId_TpRxIndication 0x45 
+#define COMServiceId_StartOfReception 0x46 
+#define COMServiceId_TpTxConfirmation 0x48
 
 
+/** Configuration structure for signals and signal groups. */
+typedef struct {
+	const Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
+	union ComSizeInfo{
+		const uint8 ComBitSize; /* @req COM158 */ /* Size of signal in bits */
+		const uint32 ComSignalLength /* @req COM437 */ /* Size of signal in bytes for UINT8_N and UINT8_DYN */
+	} ComSizeInfo;
+	const uint32 ComErrorNotification; /** Notification function for error notification. */
+	const uint32 ComFirstTimeoutFactor; /* First timeout period for deadline monitoring. */
+	const uint16 ComHandleId; /* @req COM165 */ /* Identifier for the signal. */
+	const uint32 ComNotification; /* Tx and Rx notification function. */
+	const ComRxDataTimeoutAction_type ComRxDataTimeoutAction; /* @req COM412 */ /* Action to be performed when a reception timeout occurs. */
+	const ComSignalEndianess_type ComSignalEndianess; /* Endianess of the signal's network representation. */
+	const void *ComSignalInitValue; /* Value used to initialized this signal. */
+	const Com_SignalType ComSignalType; /* Type of the signal. */
+	const uint32 ComTimeoutFactor; /* Timeout period for deadline monitoring. */
+	const uint32 ComTimeoutNotification; /* @req COM552 */ /* Timeout notification function. */
+	const ComTransferProperty_type ComTransferProperty;
+	const Com_BitPositionType ComUpdateBitPosition; /* @req COM257 */ /* Update bit's position, NULL if none */
+	const uint8 ComSignalUseUpdateBit;  /* Set when update bit is used.*/
+	const ComFilter_type ComFilter; /* Filter for this signal. */
+	const uint16 ComIPduHandleId; /* @req COM175 */ /*ID of the IPDU that this signal belongs to */
+	const uint8 Com_EOL; /* Marks the end of list for the signal configuration array. */
+} ComSignal_type;
 
+/* @req 825 */
 /* Top-level configuration container for COM. Exists once per configuration. */
 typedef struct {
 	const ComIPdu_type *ComIPdu; /* IPDU definitions */
