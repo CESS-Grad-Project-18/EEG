@@ -11,7 +11,5 @@ void CanIf_CancelTxConfirmation( const Can_PduType *PduInfoPtr );
 void CanIf_ControllerBusOff( uint8 Controller );
 void CanIf_SetWakeupEvent( uint8 Controller );
 
-/* ArcCore extensions */
-void CanIf_Arc_Error( uint8 Controller, Can_Arc_ErrorType Error );
 
 #endif /*CANIF_CBK_H_*/

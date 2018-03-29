@@ -116,7 +116,94 @@ void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType i
 
 /* Communication Services */
 uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
-/* TODO: Implement */
+/* @req COM334 */ /* Shall update buffer if pdu stopped, should not store trigger */
+	/* !req COM055 */
+	uint8 retVal = E_OK;
+	bool dataChanged = FALSE;
+
+	if(Com_GetStatus() != COM_INIT){
+		Det_ReportError(COM_SENDSIGNAL_ID, COM_E_UNINIT);
+		return COM_SERVICE_NOT_AVAILABLE;
+	}
+
+	if(ComConfig->ComNofSignals <= SignalId){
+		Det_ReportError(COM_SENDSIGNAL_ID, COM_INVALID_SIGNAL_ID);
+		return COM_SERVICE_NOT_AVAILABLE;
+	}
+
+	// Store pointer to signal for easier coding.
+	const ComSignal_type * Signal = GET_Signal(SignalId);
+
+    if (Signal->ComIPduHandleId == NO_PDU_REFERENCE) {
+        /* Return error if signal is not connected to an IPdu*/
+        return COM_SERVICE_NOT_AVAILABLE;
+    }
+
+    const ComIPdu_type *IPdu = GET_IPdu(Signal->ComIPduHandleId);
+    Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(Signal->ComIPduHandleId);
+
+    if (isPduBufferLocked(getPduId(IPdu))) {
+        return COM_BUSY;
+    }
+	//DEBUG(DEBUG_LOW, "Com_SendSignal: id %d, nBytes %d, BitPosition %d, intVal %d\n", SignalId, nBytes, signal->ComBitPosition, (uint32)*(uint8 *)SignalDataPtr);
+
+    imask_t irq_state;
+
+    Irq_Save(irq_state);
+    /* @req COM624 */
+    Com_WriteSignalDataToPdu(Signal->ComHandleId, SignalDataPtr, &dataChanged);
+
+    // If the signal has an update bit. Set it!
+    /* @req COM061 */
+    if (Signal->ComSignalArcUseUpdateBit) {
+        SETBIT(Arc_IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
+    }
+
+    if( Arc_IPdu->Com_Arc_IpduStarted ) {
+        /*
+         * If signal has triggered transmit property, trigger a transmission!
+         */
+        /* @req COM767 */
+        /* @req COM734 */
+        /* @req COM768 */
+        /* @req COM762 *//* Signal with ComBitSize 0 should never be detected as changed */
+        if ( (TRIGGERED == Signal->ComTransferProperty) || ( TRIGGERED_WITHOUT_REPETITION == Signal->ComTransferProperty ) ||
+                ( ((TRIGGERED_ON_CHANGE == Signal->ComTransferProperty) || ( TRIGGERED_ON_CHANGE_WITHOUT_REPETITION == Signal->ComTransferProperty )) && dataChanged)) {
+            /* !req COM625 */
+            /* @req COM279 */
+            /* @req COM330 */
+            /* @req COM467 */ /* Though RetryFailedTransmitRequests not supported. */
+            /* @req COM305.1 */
+
+            uint8 nofReps = 0;
+            switch(Signal->ComTransferProperty) {
+                case TRIGGERED:
+                case TRIGGERED_ON_CHANGE:
+                    if( 0 == IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions ) {
+                        nofReps = 1;
+                    } else {
+                        nofReps = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions;
+                    }
+                    break;
+                case TRIGGERED_WITHOUT_REPETITION:
+                case TRIGGERED_ON_CHANGE_WITHOUT_REPETITION:
+                    nofReps = 1;
+                    break;
+                default:
+                    break;
+            }
+            /* Do not cancel outstanding repetitions triggered by other signals  */
+            if( Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft < nofReps ) {
+                Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft = nofReps;
+            }
+        }
+    } else {
+        retVal = COM_SERVICE_NOT_AVAILABLE;
+    }
+    Irq_Restore(irq_state);
+
+    return retVal;
+}
 } /*SID 0x0a*/
 
 uint8 Com_SendDynSignal(Com_SignalIdType SignalId, const void* SignalDataPtr, uint16 Length){

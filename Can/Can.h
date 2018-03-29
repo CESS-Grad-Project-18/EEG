@@ -38,7 +38,7 @@
 
 /* HOH flags */
 #define CAN_HOH_FIFO_MASK           (1UL<<0)
-//#define CAN_HOH_EOL_MASK            (1<<9)
+
 
 /* Controller flags */
 #define CAN_CTRL_RX_PROCESSING_INTERRUPT        (1UL<<0)
