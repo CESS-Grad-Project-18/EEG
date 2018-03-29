@@ -87,6 +87,97 @@ void Com_GetVersionInfo(Std_VersionInfoType* versioninfo){
 /* TODO: Revise */
 }/*SID 0x09, Version out*/
 
+
+void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean * dataChanged){
+	const ComSignal_type *Signal     = GET_Signal(signalId);
+	const Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(Signal->ComIPduHandleId);
+	/* @req COM221 */
+	/* COM module shall perform endianness conversion before the I-PDU callout on sender side. */
+	const ComSignal_type * Signal =  GET_Signal(signalId);
+	Com_SignalType signalType = Signal->ComSignalType;
+	uint8 signalLength = Signal->ComBitSize / 8;
+	Com_BitPositionType bitPosition = Signal->ComBitPosition;
+	uint8 bitSize = Signal->ComBitSize;
+	ComSignalEndianess_type endianness = Signal->ComSignalEndianess;
+
+	uint8 signalBufferSize = SignalTypeToSize(signalType, signalLength);
+	uint8 pduSignalMask[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	uint8 signalDataBytesArray[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	const uint8 *signalDataBytes = (const uint8 *)signalData;
+	imask_t irq_state;
+
+	Irq_Save(irq_state);
+	if (endianness == COM_OPAQUE || signalType == UINT8_N) {
+		/* @req COM472 */
+		/* COM interprets opaque data as uint8[n] andshall always map it to an n-bytes sized signal */
+		uint8 *pduBufferBytes = (uint8 *)pduBuffer;
+		uint8 startFromPduByte = bitPosition / 8;
+		if( 0 != memcmp(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength) ) {
+		    *dataChanged = TRUE;
+		}
+		memcpy(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength);
+	} else {
+		if (Com_SystemEndianness == COM_BIG_ENDIAN) {
+			// Straight copy
+			uint8 i;
+			for (i = 0; i < signalBufferSize; i++) {
+				signalDataBytesArray[i] = signalDataBytes[i];
+			}
+
+		} else if (Com_SystemEndianness == COM_LITTLE_ENDIAN) {
+			// Data copy algorithm assumes big-endian input data so we swap
+			uint8 i;
+			for (i = 0; i < signalBufferSize; i++) {
+				signalDataBytesArray[(signalBufferSize - 1) - i] = signalDataBytes[i];
+			}
+		} else {
+			//lint --e(506)	PC-Lint exception Misra 13.7, 14.1, Allow boolean to always be false.
+			assert(0);
+		}
+
+        if (endianness == COM_BIG_ENDIAN) {
+            Com_BitPositionType startBitOffset = motorolaBitNrToPduOffset(bitPosition%8);
+            uint8 pduBufferBytesStraight[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+			Com_WriteDataSegment(pduBufferBytesStraight, pduSignalMask,
+					signalDataBytesArray, signalBufferSize, startBitOffset, bitSize);
+
+            // Straight copy into real pdu buffer (with mutex)
+            uint8 *pduBufferBytes = ((uint8 *)pduBuffer)+(bitPosition/8);
+            uint8 i;
+            for (i = 0; i < 8; i++) {
+                if( pduBufferBytesStraight[i] != (pduBufferBytes[i]  & pduSignalMask[i]) ) {
+                    *dataChanged = TRUE;
+                }
+                pduBufferBytes[i] &= ~pduSignalMask[i];
+                pduBufferBytes[i] |= pduBufferBytesStraight[i];
+            }
+
+        } else {
+            uint8 startBitOffset = intelBitNrToPduOffset(bitPosition%8, bitSize, 64);
+            uint8 pduBufferBytesSwapped[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+            Com_WriteDataSegment(pduBufferBytesSwapped, pduSignalMask,
+                    signalDataBytesArray, signalBufferSize, startBitOffset, bitSize);
+
+            // Swapped copy into real pdu buffer (with mutex)
+            uint8 *pduBufferBytes = ((uint8 *)pduBuffer)+(bitPosition/8);
+            uint8 i;
+            // actually it is only necessary to iterate through the bytes that are written.
+            for (i = 0; i < 8; i++) {
+                if(pduBufferBytesSwapped[7 - i] != (pduBufferBytes[i] & (pduSignalMask[7 - i]))) {
+                    *dataChanged = TRUE;
+                }
+                pduBufferBytes[i] &= ~pduSignalMask[7 - i];
+                pduBufferBytes[i] |= pduBufferBytesSwapped[7 - i];
+            }
+        }
+	}
+	Irq_Restore(irq_state);
+}
+
+}	
+
 void Com_ClearIpduGroupVector(Com_IpduGroupVector ipduGroupVector){
 	if(initStatus != COM_INIT){
 		Det_ReportError(COM_CLEARIPDUGROUPVECTOR_ID, COM_E_UNINIT);
@@ -116,8 +207,6 @@ void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType i
 
 /* Communication Services */
 uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
-/* @req COM334 */ /* Shall update buffer if pdu stopped, should not store trigger */
-	/* !req COM055 */
 	uint8 retVal = E_OK;
 	bool dataChanged = FALSE;
 
@@ -140,18 +229,17 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
     }
 
     const ComIPdu_type *IPdu = GET_IPdu(Signal->ComIPduHandleId);
-    Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(Signal->ComIPduHandleId);
 
     if (isPduBufferLocked(getPduId(IPdu))) {
         return COM_BUSY;
     }
-	//DEBUG(DEBUG_LOW, "Com_SendSignal: id %d, nBytes %d, BitPosition %d, intVal %d\n", SignalId, nBytes, signal->ComBitPosition, (uint32)*(uint8 *)SignalDataPtr);
 
     imask_t irq_state;
 
     Irq_Save(irq_state);
     /* @req COM624 */
-    Com_WriteSignalDataToPdu(Signal->ComHandleId, SignalDataPtr, &dataChanged);
+    /*Com_SendSignal shall update the signal object identifed by SignalId with the signal reference by the SignalDataPtr param */
+    Com_WriteToPDU(Signal->ComHandleId, SignalDataPtr, &dataChanged); /* Helper function*/
 
     // If the signal has an update bit. Set it!
     /* @req COM061 */
@@ -160,13 +248,21 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
     }
 
     if( Arc_IPdu->Com_Arc_IpduStarted ) {
-        /*
-         * If signal has triggered transmit property, trigger a transmission!
-         */
+        /* If signal has triggered transmit property, trigger a transmission! */
         /* @req COM767 */
+        /* Signal with ComTransferProperty TRIGGERED_WITHOUT_REPETITION assigned to I-PDU  wtih ComTxModeMode DIRECT or MIXED shall be transmitted once 
+         * if the new value of the signal is different from local 
+         */        
         /* @req COM734 */
-        /* @req COM768 */
-        /* @req COM762 *//* Signal with ComBitSize 0 should never be detected as changed */
+        /* Signal with ComTransferProperty TRIGGERED_ON_CHANGE assigned to I-PDU  wtih ComTxModeMode DIRECT or MIXED shall be transmitted once 
+         *if the new value of the signal is different from local 
+         */        
+        /* @req COM768 */ 
+        /* Signal with ComTransferProperty TRIGGERED_ON_CHANGE_WITHOUT_REPETITION assigned to I-PDU  wtih ComTxModeMode DIRECT or MIXED shall be transmitted once 
+         * if the new value of the signal is different from local 
+         */
+        /* @req COM762 */
+        /* Signal with ComBitSize 0 should never be detected as changed */
         if ( (TRIGGERED == Signal->ComTransferProperty) || ( TRIGGERED_WITHOUT_REPETITION == Signal->ComTransferProperty ) ||
                 ( ((TRIGGERED_ON_CHANGE == Signal->ComTransferProperty) || ( TRIGGERED_ON_CHANGE_WITHOUT_REPETITION == Signal->ComTransferProperty )) && dataChanged)) {
             /* !req COM625 */
