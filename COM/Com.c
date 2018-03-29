@@ -5,6 +5,11 @@
 #include "SchM_Com.h"
 #include "UserCbk.h"
 
+#define Com_GetSignal(SignalId)(&ComConfig->ComSignal[SignalId])
+#define Com_TestBit(data, bit)	(*((uint8 *) data  + (bit / 8)) &  (uint8)(1u << (bit % 8)))
+#define Com_SetBit(data, bit)	(*((uint8 *) data    + (bit / 8)) |= (uint8)(1u << (bit % 8)))
+#define Com_ClearBit(data, bit) (*((uint8 *) data + (bit / 8)) &= (uint8)~(uint8)(1u << (bit % 8)))
+
 const Com_ConfigType *ComConfig;
 ComSignalEndianess_type Com_SystemEndianness;
 static Com_StatusType initStatus = COM_UNINIT;
@@ -89,11 +94,11 @@ void Com_GetVersionInfo(Std_VersionInfoType* versioninfo){
 
 
 void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean * dataChanged){
-	const ComSignal_type *Signal     = GET_Signal(signalId);
+	const ComSignal_type *Signal     = Com_GetSignal(signalId);
 	const Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(Signal->ComIPduHandleId);
 	/* @req COM221 */
 	/* COM module shall perform endianness conversion before the I-PDU callout on sender side. */
-	const ComSignal_type * Signal =  GET_Signal(signalId);
+	const ComSignal_type * Signal =  Com_GetSignal(signalId);
 	Com_SignalType signalType = Signal->ComSignalType;
 	uint8 signalLength = Signal->ComBitSize / 8;
 	Com_BitPositionType bitPosition = Signal->ComBitPosition;
@@ -112,7 +117,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 		/* COM interprets opaque data as uint8[n] andshall always map it to an n-bytes sized signal */
 		uint8 *pduBufferBytes = (uint8 *)pduBuffer;
 		uint8 startFromPduByte = bitPosition / 8;
-		if( 0 != memcmp(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength) ) {
+		if(memcmp(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength) != 0) {
 		    *dataChanged = TRUE;
 		}
 		memcpy(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength);
@@ -131,7 +136,6 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 				signalDataBytesArray[(signalBufferSize - 1) - i] = signalDataBytes[i];
 			}
 		} else {
-			//lint --e(506)	PC-Lint exception Misra 13.7, 14.1, Allow boolean to always be false.
 			assert(0);
 		}
 
@@ -175,8 +179,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 	}
 	Irq_Restore(irq_state);
 }
-
-}	
+	
 
 void Com_ClearIpduGroupVector(Com_IpduGroupVector ipduGroupVector){
 	if(initStatus != COM_INIT){
@@ -221,7 +224,7 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
 	}
 
 	// Store pointer to signal for easier coding.
-	const ComSignal_type * Signal = GET_Signal(SignalId);
+	const ComSignal_type * Signal = Com_GetSignal(SignalId);
 
     if (Signal->ComIPduHandleId == NO_PDU_REFERENCE) {
         /* Return error if signal is not connected to an IPdu*/
@@ -241,13 +244,13 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
     /*Com_SendSignal shall update the signal object identifed by SignalId with the signal reference by the SignalDataPtr param */
     Com_WriteToPDU(Signal->ComHandleId, SignalDataPtr, &dataChanged); /* Helper function*/
 
-    // If the signal has an update bit. Set it!
     /* @req COM061 */
+    /* Set bit if signal has an update bit */
     if (Signal->ComSignalArcUseUpdateBit) {
-        SETBIT(Arc_IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
+        Com_SetBit(Arc_IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
     }
 
-    if( Arc_IPdu->Com_Arc_IpduStarted ) {
+    if(Arc_IPdu->Com_Arc_IpduStarted){
         /* If signal has triggered transmit property, trigger a transmission! */
         /* @req COM767 */
         /* Signal with ComTransferProperty TRIGGERED_WITHOUT_REPETITION assigned to I-PDU  wtih ComTxModeMode DIRECT or MIXED shall be transmitted once 
@@ -270,36 +273,33 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
             /* @req COM330 */
             /* @req COM467 */ /* Though RetryFailedTransmitRequests not supported. */
             /* @req COM305.1 */
-
-            uint8 nofReps = 0;
+            uint8 numOfReps = 0;
             switch(Signal->ComTransferProperty) {
                 case TRIGGERED:
                 case TRIGGERED_ON_CHANGE:
-                    if( 0 == IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions ) {
-                        nofReps = 1;
-                    } else {
-                        nofReps = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions;
+                    if(IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions == 0){
+                        numOfReps = 1;
+                    }else{
+                        numOfReps = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions;
                     }
                     break;
                 case TRIGGERED_WITHOUT_REPETITION:
                 case TRIGGERED_ON_CHANGE_WITHOUT_REPETITION:
-                    nofReps = 1;
+                    numOfReps = 1;
                     break;
                 default:
                     break;
             }
             /* Do not cancel outstanding repetitions triggered by other signals  */
-            if( Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft < nofReps ) {
-                Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft = nofReps;
+            if(Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft < numOfReps){
+                Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft = numOfReps;
             }
         }
-    } else {
+    }else{
         retVal = COM_SERVICE_NOT_AVAILABLE;
     }
     Irq_Restore(irq_state);
-
     return retVal;
-}
 } /*SID 0x0a*/
 
 uint8 Com_SendDynSignal(Com_SignalIdType SignalId, const void* SignalDataPtr, uint16 Length){
