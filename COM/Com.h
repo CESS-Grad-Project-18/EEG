@@ -20,7 +20,63 @@ typedef uint16 Com_BitPositionType;
 typedef enum{
 	COM_UNINIT,
 	COM_INIT
-} Com_StatusType
+} Com_StatusType;
+
+/* @req COM119 */
+typedef enum {
+	IMMEDIATE,
+	DEFERRED
+} Com_IPduSignalProcessing;
+
+/* @req COM493 */
+typedef enum {
+	RECEIVE,
+	SEND
+} Com_IPduDirection;
+
+/* @req COM232 */
+typedef enum {
+	PENDING, /* Transmission not triggered */
+	TRIGGERED, /* Can be triggered by I-PDU */
+	TRIGGERED_ON_CHANGE, /* Triggered if value is different than stored */
+	TRIGGERED_ON_CHANGE_WITHOUT_REPETITION, /* Triggered once if value is different than stored */
+	TRIGGERED_WITHOUT_REPETITION /* Can be triggered by I-PDU but once */
+} ComTransferProperty_type;
+
+/* @req COM137 */
+typedef enum {
+	DIRECT,
+	MIXED,
+	NONE,
+	PERIODIC
+} ComTxModeMode_type;
+
+/* @req COM602 */
+/* Filtering mechanisms used on sender side for Transmission Mode Conditions (TMC) but shall not filter out signals on sender side.*/
+typedef enum {
+	ALWAYS,
+	MASKED_NEW_DIFFERS_MASKED_OLD,
+	MASKED_NEW_DIFFERS_X,
+	MASKED_NEW_EQUALS_X,
+	NEVER,
+	NEW_IS_OUTSIDE,
+	NEW_IS_WITHIN,
+	ONE_EVERY_N
+} ComFilterAlgorithm_type;
+
+/* @req COM157 */
+typedef enum {
+	COM_BIG_ENDIAN,
+	COM_LITTLE_ENDIAN,
+	COM_OPAQUE
+} ComSignalEndianness_type;
+
+/* @req COM291 */
+/* reception deadline monitoring of the I-PDU using the smallest configured non zero timeout parameter */
+typedef enum {
+	COM_TIMEOUT_DATA_ACTION_NONE,
+	COM_TIMEOUT_DATA_ACTION_REPLACE
+} ComRxDataTimeoutAction_type;
 
 typedef uint16 Com_SignalIdType;
 typedef uint16 Com_SignalGroupIdType;
@@ -69,10 +125,9 @@ typedef uint8 Com_ServiceIdType;
 /* Top-level configuration container for COM. Exists once per configuration. */
 typedef struct {
 	const ComIPdu_type *ComIPdu; /* IPDU definitions */
-	const ComIPduGroup_type *ComIPduGroup; /* IPDU group definitions */
 	const ComSignal_type *ComSignal; /* Signal definitions */
-	const ComGroupSignal_type *ComGroupSignal; /* Group signal definitions */
-
+	const uint8 ComNumOfSignals; /* Number of signals */
+	const uint8 ComNumOfIPDUs; /* Number of I-PDUs */
 } Com_ConfigType;
 
 
@@ -108,7 +163,7 @@ void Com_SwitchIpduTxMode(PduIdType PduId, boolean Mode); /*SID 0x27*/
 
 
 /* Helper functions */
-Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData,boolean * dataChanged);
+void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData,boolean * dataChanged);
 
 extern ComSignalEndianess_type Com_SystemEndianness;
 
