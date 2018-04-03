@@ -7,8 +7,6 @@
 
 #include "Std_Types.h"
 
-
-typedef uint16 PduIdType;
 typedef uint16 PduLengthType;
 typedef struct {
 	uint8 *SduDataPtr;			/* Payload */

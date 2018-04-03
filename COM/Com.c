@@ -5,7 +5,9 @@
 #include "SchM_Com.h"
 #include "UserCbk.h"
 
-#define Com_GetSignal(SignalId)(&ComConfig->ComSignal[SignalId])
+#define Com_GetSignal(SignalId) (&ComConfig->ComSignal[SignalId])
+#define Com_GetPDUId(IPdu) ((PduIdType)(IPdu - (ComConfig->ComIPdu)))
+#define Com_GetIPDU(IPduId) (&ComConfig->ComIPdu[IPduId])
 #define Com_TestBit(data, bit)	(*((uint8 *) data  + (bit / 8)) &  (uint8)(1u << (bit % 8)))
 #define Com_SetBit(data, bit)	(*((uint8 *) data    + (bit / 8)) |= (uint8)(1u << (bit % 8)))
 #define Com_ClearBit(data, bit) (*((uint8 *) data + (bit / 8)) &= (uint8)~(uint8)(1u << (bit % 8)))
@@ -15,6 +17,17 @@ ComSignalEndianess_type Com_SystemEndianness;
 static Com_StatusType initStatus = COM_UNINIT;
 static const uint32_t endian_test  = 0xdeadbeefU;
 
+boolean Com_BufferLocked(PduIdType id) {
+	imask_t state;
+	Irq_Save(state);
+	boolean locked = Com_BufferState[id].isLocked;
+	Irq_Restore(state);
+	if (locked) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 /* Startup and Control Services*/
 void Com_Init(const Com_ConfigType * config){
@@ -93,14 +106,14 @@ void Com_GetVersionInfo(Std_VersionInfoType* versioninfo){
 }/*SID 0x09, Version out*/
 
 
-void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean * dataChanged){
+void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, bool *dataChanged){
 	const ComSignal_type *Signal     = Com_GetSignal(signalId);
 	const Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(Signal->ComIPduHandleId);
 	/* @req COM221 */
 	/* COM module shall perform endianness conversion before the I-PDU callout on sender side. */
 	const ComSignal_type * Signal =  Com_GetSignal(signalId);
 	Com_SignalType signalType = Signal->ComSignalType;
-	uint8 signalLength = Signal->ComBitSize / 8;
+	uint8 signalLength = Signal->ComSizeInfo->ComBitSize / 8;
 	Com_BitPositionType bitPosition = Signal->ComBitPosition;
 	uint8 bitSize = Signal->ComBitSize;
 	ComSignalEndianess_type endianness = Signal->ComSignalEndianess;
@@ -112,45 +125,39 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 	imask_t irq_state;
 
 	Irq_Save(irq_state);
-	if (endianness == COM_OPAQUE || signalType == UINT8_N) {
+	if (endianness == COM_OPAQUE || signalType == UINT8_N){
 		/* @req COM472 */
 		/* COM interprets opaque data as uint8[n] andshall always map it to an n-bytes sized signal */
 		uint8 *pduBufferBytes = (uint8 *)pduBuffer;
 		uint8 startFromPduByte = bitPosition / 8;
-		if(memcmp(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength) != 0) {
+		if(memcmp(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength) != 0){
 		    *dataChanged = TRUE;
 		}
 		memcpy(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength);
-	} else {
-		if (Com_SystemEndianness == COM_BIG_ENDIAN) {
-			// Straight copy
+	}else{
+		if (Com_SystemEndianness == COM_BIG_ENDIAN){
 			uint8 i;
-			for (i = 0; i < signalBufferSize; i++) {
+			for (i = 0; i < signalBufferSize; i++){
 				signalDataBytesArray[i] = signalDataBytes[i];
 			}
 
-		} else if (Com_SystemEndianness == COM_LITTLE_ENDIAN) {
-			// Data copy algorithm assumes big-endian input data so we swap
+		} else if (Com_SystemEndianness == COM_LITTLE_ENDIAN){
+			/* Swap copying */
 			uint8 i;
-			for (i = 0; i < signalBufferSize; i++) {
+			for (i = 0; i < signalBufferSize; i++){
 				signalDataBytesArray[(signalBufferSize - 1) - i] = signalDataBytes[i];
 			}
 		} else {
-			assert(0);
 		}
 
-        if (endianness == COM_BIG_ENDIAN) {
-            Com_BitPositionType startBitOffset = motorolaBitNrToPduOffset(bitPosition%8);
+        if (endianness == COM_BIG_ENDIAN){
+            Com_BitPositionType startBitOffset = motorolaBitNrToPduOffset(bitPosition % 8);
             uint8 pduBufferBytesStraight[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-			Com_WriteDataSegment(pduBufferBytesStraight, pduSignalMask,
-					signalDataBytesArray, signalBufferSize, startBitOffset, bitSize);
-
-            // Straight copy into real pdu buffer (with mutex)
+			Com_WriteData(pduBufferBytesStraight, pduSignalMask, signalDataBytesArray, signalBufferSize, startBitOffset, bitSize);
             uint8 *pduBufferBytes = ((uint8 *)pduBuffer)+(bitPosition/8);
             uint8 i;
             for (i = 0; i < 8; i++) {
-                if( pduBufferBytesStraight[i] != (pduBufferBytes[i]  & pduSignalMask[i]) ) {
+                if(pduBufferBytesStraight[i] != (pduBufferBytes[i]  & pduSignalMask[i])){
                     *dataChanged = TRUE;
                 }
                 pduBufferBytes[i] &= ~pduSignalMask[i];
@@ -158,18 +165,14 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
             }
 
         } else {
-            uint8 startBitOffset = intelBitNrToPduOffset(bitPosition%8, bitSize, 64);
+            uint8 startBitOffset = intelBitNrToPduOffset(bitPosition % 8, bitSize, 64);
             uint8 pduBufferBytesSwapped[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-            Com_WriteDataSegment(pduBufferBytesSwapped, pduSignalMask,
-                    signalDataBytesArray, signalBufferSize, startBitOffset, bitSize);
-
-            // Swapped copy into real pdu buffer (with mutex)
-            uint8 *pduBufferBytes = ((uint8 *)pduBuffer)+(bitPosition/8);
+            Com_WriteData(pduBufferBytesSwapped, pduSignalMask, signalDataBytesArray, signalBufferSize, startBitOffset, bitSize);
+            uint8 *pduBufferBytes = ((uint8 *)pduBuffer) + (bitPosition / 8);
             uint8 i;
-            // actually it is only necessary to iterate through the bytes that are written.
-            for (i = 0; i < 8; i++) {
-                if(pduBufferBytesSwapped[7 - i] != (pduBufferBytes[i] & (pduSignalMask[7 - i]))) {
+            /* TODO: Check bytes written and iterate through them only */
+            for (i = 0; i < 8; i++){
+                if(pduBufferBytesSwapped[7 - i] != (pduBufferBytes[i] & (pduSignalMask[7 - i]))){
                     *dataChanged = TRUE;
                 }
                 pduBufferBytes[i] &= ~pduSignalMask[7 - i];
@@ -210,7 +213,6 @@ void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType i
 
 /* Communication Services */
 uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
-	uint8 retVal = E_OK;
 	bool dataChanged = FALSE;
 
 	if(Com_GetStatus() != COM_INIT){
@@ -231,9 +233,9 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
         return COM_SERVICE_NOT_AVAILABLE;
     }
 
-    const ComIPdu_type *IPdu = GET_IPdu(Signal->ComIPduHandleId);
+    const ComIPdu_type *IPdu = Com_GetIPDU(Signal->ComIPduHandleId);
 
-    if (isPduBufferLocked(getPduId(IPdu))) {
+    if (Com_BufferLocked(getPduId(IPdu))) {
         return COM_BUSY;
     }
 
@@ -246,7 +248,7 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
 
     /* @req COM061 */
     /* Set bit if signal has an update bit */
-    if (Signal->ComSignalArcUseUpdateBit) {
+    if (Signal->ComSignalUseUpdateBit) {
         Com_SetBit(Arc_IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
     }
 
@@ -296,10 +298,10 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
             }
         }
     }else{
-        retVal = COM_SERVICE_NOT_AVAILABLE;
+        return COM_SERVICE_NOT_AVAILABLE;
     }
     Irq_Restore(irq_state);
-    return retVal;
+    return E_OK;
 } /*SID 0x0a*/
 
 uint8 Com_SendDynSignal(Com_SignalIdType SignalId, const void* SignalDataPtr, uint16 Length){
@@ -378,7 +380,41 @@ void Com_TpRxIndication(PduIdType id, Std_ReturnType result){
 } /*SID 0x45*/
 
 void Com_TxConfirmation(PduIdType TxPduId){
-/* TODO: Implement */
+	/* !req COM053 */
+	/* !req COM305 */
+	/* !req COM469 */
+	/* !req COM577 */
+	/* @req COM652 */ /* Function does nothing.. */
+	if(Com_GetStatus() != COM_INIT) {
+		Det_ReportError(COM_TXCONFIRMATION_ID, COM_E_UNINIT);
+		return;
+	}
+	if( TxPduId >= ComConfig->ComNofIPdus ) {
+		Det_ReportError(COM_TXCONFIRMATION_ID, COM_INVALID_PDU_ID);
+		return;
+	}
+
+    /* @req COM468 */
+    /* Call all notifications for the PDU */
+    const ComIPdu_type *IPdu = Com_GetIPDU(TxPduId);
+
+    if (IPdu->ComIPduDirection == RECEIVE) {
+        Det_ReportError(COM_TXCONFIRMATION_ID, COM_INVALID_PDU_ID);
+    }
+    else if (IPdu->ComIPduSignalProcessing == IMMEDIATE) {
+        /* If immediate, call the notification functions  */
+        for (uint8 i = 0; IPdu->ComIPduSignalRef[i] != NULL; i++) {
+            const ComSignal_type *signal = IPdu->ComIPduSignalRef[i];
+            if ((signal->ComNotification != COM_NO_FUNCTION_CALLOUT) &&
+                (ComNotificationCallouts[signal->ComNotification] != NULL) ) {
+                ComNotificationCallouts[signal->ComNotification]();
+            }
+        }
+    }
+    else {
+        /* If deferred, set status and let the main function call the notification function */
+        SetTxConfirmationStatus(IPdu, TRUE);
+}
 } /*SID 0x40*/
 
 void Com_TpTxConfirmation(PduIdType id, Std_ReturnType result){
