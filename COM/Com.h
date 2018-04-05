@@ -15,6 +15,15 @@
 
 #include "ComStack_Types.h"
 
+#define Com_SignalTypeToSize(type, len) \
+	(type == UINT8   ? sizeof(uint8) : \
+	type == UINT16  ? sizeof(uint16) : \
+	type == UINT32  ? sizeof(uint32) : \
+	type == UINT8_N  ? sizeof(uint8) * len : \
+	type == SINT8   ? sizeof(sint8) : \
+	type == SINT16  ? sizeof(sint16) : \
+	type == SINT32 ? sizeof(sint32) : sizeof(boolean)) \
+
 typedef uint16 Com_BitPositionType;
 
 typedef enum{
@@ -252,8 +261,11 @@ void Com_SwitchIpduTxMode(PduIdType PduId, boolean Mode); /*SID 0x27*/
 
 
 /* Helper functions */
+void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr, 
+	uint8 destByteLength, Com_BitPositionType segmentStartBitOffset, uint8 segmentBitLength);
 void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean *dataChanged);
 boolean Com_BufferLocked(PduIdType id);
+void Com_RxSignalProcess(const ComIPdu_type *IPdu);
 
 extern ComSignalEndianess_type Com_SystemEndianness;
 extern Com_BufferStateType Com_BufferState[];
