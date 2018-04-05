@@ -220,12 +220,12 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
 		return COM_SERVICE_NOT_AVAILABLE;
 	}
 
-	if(ComConfig->ComNofSignals <= SignalId){
+	if(ComConfig->ComNumOfSignals <= SignalId){
 		Det_ReportError(COM_SENDSIGNAL_ID, COM_INVALID_SIGNAL_ID);
 		return COM_SERVICE_NOT_AVAILABLE;
 	}
 
-	// Store pointer to signal for easier coding.
+	/* Store pointer to signal for easier coding. */
 	const ComSignal_type * Signal = Com_GetSignal(SignalId);
 
     if (Signal->ComIPduHandleId == NO_PDU_REFERENCE) {
@@ -235,7 +235,7 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
 
     const ComIPdu_type *IPdu = Com_GetIPDU(Signal->ComIPduHandleId);
 
-    if (Com_BufferLocked(getPduId(IPdu))) {
+    if (Com_BufferLocked(Com_GetPDUId(IPdu))) {
         return COM_BUSY;
     }
 
@@ -249,10 +249,9 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
     /* @req COM061 */
     /* Set bit if signal has an update bit */
     if (Signal->ComSignalUseUpdateBit) {
-        Com_SetBit(Arc_IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
+        Com_SetBit(IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
     }
 
-    if(Arc_IPdu->Com_Arc_IpduStarted){
         /* If signal has triggered transmit property, trigger a transmission! */
         /* @req COM767 */
         /* Signal with ComTransferProperty TRIGGERED_WITHOUT_REPETITION assigned to I-PDU  wtih ComTxModeMode DIRECT or MIXED shall be transmitted once 
@@ -293,10 +292,9 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
                     break;
             }
             /* Do not cancel outstanding repetitions triggered by other signals  */
-            if(Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft < numOfReps){
-                Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft = numOfReps;
+            if(IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitions < numOfReps){
+                IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitions = numOfReps;
             }
-        }
     }else{
         return COM_SERVICE_NOT_AVAILABLE;
     }
@@ -372,7 +370,47 @@ Std_ReturnType Com_TriggerTransmit(PduIdType TxPduId, PduInfoType* PduInfoPtr){
 } /*SID 0x41*/
 
 void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
-/* TODO: Implement */
+	if(Com_GetStatus() != COM_INIT) {
+		Det_ReportError(COM_RXINDICATION_ID, COM_E_UNINIT);
+		return;
+	}
+	if(ComConfig->ComNumOfIPDUs <= RxPduId) {
+		Det_ReportError(COM_RXINDICATION_ID, COM_INVALID_PDU_ID);
+		return;
+	}
+	const ComIPdu_type *IPdu = GET_IPdu(RxPduId);
+	Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(RxPduId);
+	imask_t state;
+	Irq_Save(state);
+	/* @req COM649 */ /* Interrups disabled */
+	/* If I-PDU is stopped */
+	/* @req COM684 */
+	if (!Arc_IPdu->Com_Arc_IpduStarted) {
+		Irq_Restore(state);
+		return;
+	}
+	/* Check callout status */
+	/* @req COM555 */
+	/* @req COM700 */
+	/* @req COM381 */
+	/* @req COM780 */
+	/* @req COM781 */
+	if ((IPdu->ComRxIPduCallout != COM_NO_FUNCTION_CALLOUT) && (ComRxIPduCallouts[IPdu->ComRxIPduCallout] != NULL)) {
+		if (!ComRxIPduCallouts[IPdu->ComRxIPduCallout](RxPduId, PduInfoPtr->SduDataPtr)) {
+			// TODO Report error to DET.
+			// Det_ReportError();
+			/* !req COM738 */
+			Irq_Restore(state);
+			return;
+		}
+	}
+	/* !req COM574 */
+	/* !req COM575 */
+	/* Copy IPDU data */
+	memcpy(Arc_IPdu->ComIPduDataPtr, PduInfoPtr->SduDataPtr, IPdu->ComIPduSize);
+	Com_RxProcessSignals(IPdu,Arc_IPdu);
+	Irq_Restore(state);
+	return;
 } /*SID 0x42*/
 
 void Com_TpRxIndication(PduIdType id, Std_ReturnType result){
@@ -380,10 +418,10 @@ void Com_TpRxIndication(PduIdType id, Std_ReturnType result){
 } /*SID 0x45*/
 
 void Com_TxConfirmation(PduIdType TxPduId){
-	/* !req COM053 */
-	/* !req COM305 */
-	/* !req COM469 */
-	/* !req COM577 */
+	/* @req COM053 */
+	/* @req COM305 */
+	/* @req COM469 */
+	/* @req COM577 */
 	/* @req COM652 */ /* Function does nothing.. */
 	if(Com_GetStatus() != COM_INIT) {
 		Det_ReportError(COM_TXCONFIRMATION_ID, COM_E_UNINIT);
@@ -404,17 +442,20 @@ void Com_TxConfirmation(PduIdType TxPduId){
     else if (IPdu->ComIPduSignalProcessing == IMMEDIATE) {
         /* If immediate, call the notification functions  */
         for (uint8 i = 0; IPdu->ComIPduSignalRef[i] != NULL; i++) {
-            const ComSignal_type *signal = IPdu->ComIPduSignalRef[i];
-            if ((signal->ComNotification != COM_NO_FUNCTION_CALLOUT) &&
-                (ComNotificationCallouts[signal->ComNotification] != NULL) ) {
-                ComNotificationCallouts[signal->ComNotification]();
+            const ComSignal_type *Signal = IPdu->ComIPduSignalRef[i];
+            if ((Signal->ComNotification != COM_NO_FUNCTION_CALLOUT) &&
+                (ComNotificationCallouts[Signal->ComNotification] != NULL) ) {
+                ComNotificationCallouts[Signal->ComNotification]();
             }
         }
     }
     else {
         /* If deferred, set status and let the main function call the notification function */
-        SetTxConfirmationStatus(IPdu, TRUE);
-}
+        const ComSignal_type *Signal = IPdu->ComIPduSignalRef[0];
+    	if (Signal != NULL) {
+
+		}
+	}
 } /*SID 0x40*/
 
 void Com_TpTxConfirmation(PduIdType id, Std_ReturnType result){
