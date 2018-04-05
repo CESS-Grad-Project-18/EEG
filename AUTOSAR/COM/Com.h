@@ -143,6 +143,48 @@ typedef uint8 Com_ServiceIdType;
 #define COMServiceId_TpTxConfirmation 0x48
 
 
+typedef struct {
+	PduLengthType index;
+	boolean isLocked;
+} Com_BufferStateType;
+
+
+/* @req COM351 */
+/* Configuration container for Tx-mode for I-PDUs. */
+typedef struct {
+	const ComTxModeMode_type ComTxModeMode; /* Transmission mode for this IPdu. */
+	const uint8 ComTxModeNumberOfRepetitions; /* @req COM281 */ /* Number of times the I-PDU will be sent in each I-PDU cycle. Set to 0 for DIRECT transmission mode and >0 for DIRECT/N-times mode. */
+	const uint32 ComTxModeRepetitionPeriod; /* @req COM282 */ /* Defines the period of the transmissions in DIRECT/N-times and MIXED transmission modes. */
+	const uint32 ComTxModeTimeOffset; /* @req COM180 */ /* Time before first transmission of this IPDU. (i.e. between the ipdu group start and this IPDU is sent for the first time. */
+	const uint32 ComTxModeTimePeriod; /* @req COM178 */ /* Period of cyclic transmission for PERIODIC or MIXED. */
+} ComTxMode_type;
+
+typedef struct {
+	const uint32 ComTxIPduMinimumDelayFactor; /* Minimum delay between successive transmissions of the I-PDU. */
+	const uint8 ComTxIPduUnusedAreasDefault; /* COM will fill unused areas within an IPdu with this bit patter. */
+	const ComTxMode_type ComTxModeTrue; /* Transmission modes for the I-PDU.*/
+	const ComTxMode_type ComTxModeFalse;
+} ComTxIPdu_type;
+
+/* @req COM340 */
+typedef struct {
+	/** Callout function of this IPDU.
+	 * The callout function is an optional function used both on sender and receiver side.
+	 * If configured, it determines whether an IPdu is considered for further processing. If
+	 * the callout return false the IPdu will not be received/sent.
+	 */
+	boolean (*ComIPduCallout)(PduIdType PduId, const uint8 *IPduData);
+	const uint8 IPduOutgoingId; /* Outgoing PDU ID*/
+	const Com_IPduSignalProcessing ComIPduSignalProcessing; /* Signal processing mode for this IPDU. */
+	const uint8 ComIPduSize; /* Size of the IPDU in bytes. Range 0-8 for CAN */
+	const Com_IPduDirection ComIPduDirection; /* The direction of the IPDU. Receive or Send. */
+	const ComTxIPdu_type ComTxIPdu; /* Container of transmission related parameters. */
+	void *const ComIPduDataPtr; /* Reference to the actual pdu data storage */
+	void *const ComIPduDeferredDataPtr;
+	const ComSignal_type * const *ComIPduSignalRef; /* References to all signals contained in this I-PDU. */
+	const uint8 Com_EOL; /* Marks the end of list for this configuration array. */
+} ComIPdu_type;
+
 /** Configuration structure for signals and signal groups. */
 typedef struct {
 	const Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
@@ -168,7 +210,7 @@ typedef struct {
 	const uint8 Com_EOL; /* Marks the end of list for the signal configuration array. */
 } ComSignal_type;
 
-/* @req 825 */
+/* @req COM825 */
 /* Top-level configuration container for COM. Exists once per configuration. */
 typedef struct {
 	const ComIPdu_type *ComIPdu; /* IPDU definitions */
@@ -210,9 +252,11 @@ void Com_SwitchIpduTxMode(PduIdType PduId, boolean Mode); /*SID 0x27*/
 
 
 /* Helper functions */
-void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData,boolean * dataChanged);
+void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean *dataChanged);
+boolean Com_BufferLocked(PduIdType id);
 
 extern ComSignalEndianess_type Com_SystemEndianness;
+extern Com_BufferStateType Com_BufferState[];
 
 #define COM_BUSY 0x81
 #define COM_SERVICE_NOT_AVAILABLE 0x80

@@ -5,7 +5,9 @@
 #include "SchM_Com.h"
 #include "UserCbk.h"
 
-#define Com_GetSignal(SignalId)(&ComConfig->ComSignal[SignalId])
+#define Com_GetSignal(SignalId) (&ComConfig->ComSignal[SignalId])
+#define Com_GetPDUId(IPdu) ((PduIdType)(IPdu - (ComConfig->ComIPdu)))
+#define Com_GetIPDU(IPduId) (&ComConfig->ComIPdu[IPduId])
 #define Com_TestBit(data, bit)	(*((uint8 *) data  + (bit / 8)) &  (uint8)(1u << (bit % 8)))
 #define Com_SetBit(data, bit)	(*((uint8 *) data    + (bit / 8)) |= (uint8)(1u << (bit % 8)))
 #define Com_ClearBit(data, bit) (*((uint8 *) data + (bit / 8)) &= (uint8)~(uint8)(1u << (bit % 8)))
@@ -15,6 +17,17 @@ ComSignalEndianess_type Com_SystemEndianness;
 static Com_StatusType initStatus = COM_UNINIT;
 static const uint32_t endian_test  = 0xdeadbeefU;
 
+boolean Com_BufferLocked(PduIdType id) {
+	imask_t state;
+	Irq_Save(state);
+	boolean locked = Com_BufferState[id].isLocked;
+	Irq_Restore(state);
+	if (locked) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 /* Startup and Control Services*/
 void Com_Init(const Com_ConfigType * config){
@@ -200,7 +213,6 @@ void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType i
 
 /* Communication Services */
 uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
-	uint8 retVal = E_OK;
 	bool dataChanged = FALSE;
 
 	if(Com_GetStatus() != COM_INIT){
@@ -221,9 +233,9 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
         return COM_SERVICE_NOT_AVAILABLE;
     }
 
-    const ComIPdu_type *IPdu = GET_IPdu(Signal->ComIPduHandleId);
+    const ComIPdu_type *IPdu = Com_GetIPDU(Signal->ComIPduHandleId);
 
-    if (isPduBufferLocked(getPduId(IPdu))) {
+    if (Com_BufferLocked(getPduId(IPdu))) {
         return COM_BUSY;
     }
 
@@ -236,7 +248,7 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
 
     /* @req COM061 */
     /* Set bit if signal has an update bit */
-    if (Signal->ComSignalArcUseUpdateBit) {
+    if (Signal->ComSignalUseUpdateBit) {
         Com_SetBit(Arc_IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
     }
 
@@ -286,10 +298,10 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
             }
         }
     }else{
-        retVal = COM_SERVICE_NOT_AVAILABLE;
+        return COM_SERVICE_NOT_AVAILABLE;
     }
     Irq_Restore(irq_state);
-    return retVal;
+    return E_OK;
 } /*SID 0x0a*/
 
 uint8 Com_SendDynSignal(Com_SignalIdType SignalId, const void* SignalDataPtr, uint16 Length){
@@ -368,7 +380,41 @@ void Com_TpRxIndication(PduIdType id, Std_ReturnType result){
 } /*SID 0x45*/
 
 void Com_TxConfirmation(PduIdType TxPduId){
-/* TODO: Implement */
+	/* !req COM053 */
+	/* !req COM305 */
+	/* !req COM469 */
+	/* !req COM577 */
+	/* @req COM652 */ /* Function does nothing.. */
+	if(Com_GetStatus() != COM_INIT) {
+		Det_ReportError(COM_TXCONFIRMATION_ID, COM_E_UNINIT);
+		return;
+	}
+	if( TxPduId >= ComConfig->ComNofIPdus ) {
+		Det_ReportError(COM_TXCONFIRMATION_ID, COM_INVALID_PDU_ID);
+		return;
+	}
+
+    /* @req COM468 */
+    /* Call all notifications for the PDU */
+    const ComIPdu_type *IPdu = Com_GetIPDU(TxPduId);
+
+    if (IPdu->ComIPduDirection == RECEIVE) {
+        Det_ReportError(COM_TXCONFIRMATION_ID, COM_INVALID_PDU_ID);
+    }
+    else if (IPdu->ComIPduSignalProcessing == IMMEDIATE) {
+        /* If immediate, call the notification functions  */
+        for (uint8 i = 0; IPdu->ComIPduSignalRef[i] != NULL; i++) {
+            const ComSignal_type *signal = IPdu->ComIPduSignalRef[i];
+            if ((signal->ComNotification != COM_NO_FUNCTION_CALLOUT) &&
+                (ComNotificationCallouts[signal->ComNotification] != NULL) ) {
+                ComNotificationCallouts[signal->ComNotification]();
+            }
+        }
+    }
+    else {
+        /* If deferred, set status and let the main function call the notification function */
+        SetTxConfirmationStatus(IPdu, TRUE);
+}
 } /*SID 0x40*/
 
 void Com_TpTxConfirmation(PduIdType id, Std_ReturnType result){
