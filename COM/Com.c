@@ -21,10 +21,21 @@ static const uint32_t endian_test  = 0xDEADBEEFu;
 
 /* Startup and Control Services*/
 void Com_Init(const Com_ConfigType * config){
+	/* @req COM328 */ /* Shall not enable inter-ECU communication */
+	/* @req COM483 */
+	/* @req COM128 */
+	/* @req COM217 */
+	/* @req COM444 */
+	/* @req COM772 */ /* If timeout set to 0 */
+
+	uint8 err = 0;
+    /* @req COM433 */
 	if(config == NULL) {
 		Det_ReportError(COM_INIT_ID, COM_E_PARAM_POINTER);
 		return;
 	}
+	uint32 firstTimeout;
+	boolean dataChanged = FALSE;
 	ComConfig = config;
 	uint8 endian_byte = *(const uint8 *)&endian_test; /* Get last byte*/
 	if(endian_byte == 0xEF ){ 
@@ -37,7 +48,99 @@ void Com_Init(const Com_ConfigType * config){
 		Com_SystemEndianness = COM_OPAQUE;
 		assert(0); /* Check */
 	}
-	if(1){
+	const ComSignal_type *Signal;
+	const ComGroupSignal_type *GroupSignal;
+	uint16 bufferIndex = 0;
+	for (uint16 i = 0; !ComConfig->ComIPdu[i].Com_EOL; i++) {
+	    boolean pduHasGroupSignal = FALSE;
+		const ComIPdu_type *IPdu = Com_GetIPDU(i);
+		Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(i);
+
+		if (ComConfig->ComNofIPdus <= i) {
+			Det_ReportError(COM_INIT_ID ,COM_E_TOO_MANY_IPDU);
+			err = 1;
+			break;
+		}
+		/* Set the data ptr for this Pdu */
+		Arc_IPdu->ComIPduDataPtr = (void *)&Com_Arc_Buffer[bufferIndex];
+		bufferIndex += IPdu->ComIPduSize;
+		// If this is a TX and cyclic IPdu, configure the first deadline.
+		if ( (IPdu->ComIPduDirection == SEND) &&
+				( (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == PERIODIC) || (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == MIXED) )) {
+			Arc_IPdu->Com_Arc_TxIPduTimers.ComTxModeTimePeriodTimer = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeTimeOffsetFactor;
+		}
+
+
+		// Reset firstTimeout.
+		firstTimeout = 0xffffffffu;
+
+		/* Initialize the memory with the default value. */
+		/* @req COM015 */
+		if (IPdu->ComIPduDirection == SEND) {
+			memset((void *)Arc_IPdu->ComIPduDataPtr, IPdu->ComTxIPdu.ComTxIPduUnusedAreasDefault, IPdu->ComIPduSize);
+		}
+
+		/* For each signal in this PDU. */
+		//Arc_IPdu->NComIPduSignalRef = 0;
+		for (uint16 j = 0; (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[j] != NULL) ; j++) {
+			Signal = IPdu->ComIPduSignalRef[j];
+			Com_Arc_Signal_type * Arc_Signal = GET_ArcSignal(Signal->ComHandleId);
+
+			// Configure signal deadline monitoring if used.
+			/* @req COM333 */ // If timeout set to 0
+			if (Signal->ComTimeoutFactor > 0) {
+
+				if (Signal->ComSignalUseUpdateBit) {
+					// This signal uses an update bit, and hence has its own deadline monitoring.
+					/* @req COM292 */
+					Arc_Signal->Com_Arc_DeadlineCounter = Signal->ComFirstTimeoutFactor; // Configure the deadline counter
+
+				} else {
+					// This signal does not use an update bit, and should therefore use per I-PDU deadline monitoring.
+					if (firstTimeout > Signal->ComFirstTimeoutFactor) {
+						firstTimeout = Signal->ComFirstTimeoutFactor;
+					}
+				}
+			}
+
+			// Clear update bits
+			/* @req COM117 */
+			if (Signal->ComSignalUseUpdateBit) {
+				Com_ClearBit(Arc_IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
+			}
+				// Initialize signal data.
+				/* @req COM098 */
+				Com_WriteSignalDataToPdu(Signal->ComHandleId, Signal->ComSignalInitValue, &dataChanged);
+			}
+		}
+		if (IPdu->ComIPduDirection == RECEIVE && IPdu->ComIPduSignalProcessing == DEFERRED) {
+		    /* Set pointer to the deferred buffer */
+		    Arc_IPdu->ComIPduDeferredDataPtr = (void *)&Com_Arc_Buffer[bufferIndex];
+	        bufferIndex += IPdu->ComIPduSize;
+			// Copy the initialized pdu to deferred buffer
+			memcpy(Arc_IPdu->ComIPduDeferredDataPtr,Arc_IPdu->ComIPduDataPtr,IPdu->ComIPduSize);
+		}
+		// Configure per I-PDU based deadline monitoring.
+		for (uint16 j = 0; (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[j] != NULL); j++) {
+			Signal = IPdu->ComIPduSignalRef[j];
+			Com_Arc_Signal_type * Arc_Signal = GET_ArcSignal(Signal->ComHandleId);
+
+			/* @req COM333 */ // If timeout set to 0
+			if ( (Signal->ComTimeoutFactor > 0) && (!Signal->ComSignalArcUseUpdateBit) ) {
+				/* @req COM290 */
+				Arc_Signal->Com_Arc_DeadlineCounter = firstTimeout;
+			}
+		}
+	}
+	for (uint16 i = 0; i < ComConfig->ComNumOfIPDUs; i++) {
+		Com_BufferPduState[i].index = 0;
+		Com_BufferPduState[i].isLocked = false;
+	}
+
+	// An error occurred.
+	if (err) {
+		/* */
+	} else {
 		initStatus = COM_INIT;
 	}
 /* TODO: Revise */
@@ -561,7 +664,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 		uint8 i;
 		uint8 pduBufferByteEnd[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         if (endianness == COM_BIG_ENDIAN){
-            Com_BitPositionType startBitOffset = motorolaBitNrToPduOffset(bitPosition % 8);
+            Com_BitPositionType startBitOffset = Com_GetByteOffset(bitPosition % 8);
 			Com_WriteData(pduBufferByteEnd, pduSignalMask, signalDataBytesArray, signalBufferSize, startBitOffset, bitSize);
             uint8 *pduBufferBytes = ((uint8 *)pduBuffer) + (bitPosition/8);
             for (i = 0; i < 8; i++) {
@@ -573,7 +676,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
             }
 
         } else {
-            uint8 startBitOffset = intelBitNrToPduOffset(bitPosition % 8, bitSize, 64);
+            uint8 startBitOffset = 64 - ((bitPosition % 8) + bitSize); /* 8 bytes = 64 bit*/
             Com_WriteData(pduBufferByteEnd, pduSignalMask, signalDataBytesArray, signalBufferSize, startBitOffset, bitSize);
             uint8 *pduBufferBytes = ((uint8 *)pduBuffer) + (bitPosition / 8);
             /* TODO: Check bytes written and iterate through them only */
@@ -587,4 +690,11 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
         }
 	}
 	Irq_Restore(irq_state);
+}
+
+Com_BitPositionType Com_GetByteOffset(Com_BitPositionType BitNumber){
+	uint8 byte = BitNumber / 8;
+	Com_BitPositionType byteStartOffset = (Com_BitPositionType) (byte * 8u);
+	Com_BitPositionType byteOffset = BitNumber % 8;
+	return (Com_BitPositionType) (byteStartOffset + (7u - byteOffset));
 }

@@ -266,6 +266,7 @@ void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr,
 void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean *dataChanged);
 boolean Com_BufferLocked(PduIdType id);
 void Com_RxSignalProcess(const ComIPdu_type *IPdu);
+Com_BitPositionType Com_GetByteOffset(Com_BitPositionType BitNumber)
 
 extern ComSignalEndianess_type Com_SystemEndianness;
 extern Com_BufferStateType Com_BufferState[];
