@@ -7,31 +7,7 @@
 #include "CanIf_Cbk.h"
 #include <string.h>
 
-#include "debug.h"
 #include "PduR.h"
-
-#if defined(USE_CANTP)
-#include "CanTp_Cbk.h"
-#endif
-
-#if defined(USE_J1939TP)
-#include "J1939Tp_Cbk.h"
-#endif
-
-#if defined(USE_CANNM)
-#include "CanNm.h"
-#endif
-
-#if 0
-/* TODO: Include upper layer functions, See CANIF208 and CANIF233 */
-#include "PduR_CanIf.h"
-#include "CanNm.h"
-#include "CanTp.h"
-
-#include "PduR_Cbk.h"
-#include "CanNm_Cbk.h"
-#include "CanTp_Cbk.h"
-#endif
 
 #if  ( CANIF_DEV_ERROR_DETECT == STD_ON )
 #define VALIDATE(_exp,_api,_err ) \

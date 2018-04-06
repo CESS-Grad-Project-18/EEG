@@ -67,6 +67,6 @@ typedef enum {
 	CANTRCV_WUMODE_ENABLE = 0, /* Wakeup events notifications are enabled on the addressed network. */
 	CANTRCV_WUMODE_DISABLE, /* Wakeup events notifications are disabled on the addressed network. */
 	CANTRCV_WUMODE_CLEAR /* A stored wakeup event is cleared on the addressed network */
-} CanIf_TrcvWakeupModeType;
+} CanTrcv_TrcvWakeupModeType;
 
 #endif /* CAN_GENERAL_TYPES */
