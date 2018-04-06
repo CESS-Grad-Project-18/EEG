@@ -87,16 +87,23 @@ typedef enum {
 	REPLACE
 } ComRxDataTimeoutAction_type;
 
+
+/* @req COM127 */
+/* Used to determine signedness of the signal and may be used to reserve storage */
 typedef enum {
 	BOOLEAN,
-	UINT8,
+	FLOAT32,
+	FLOAT64,
+	SINT16,
+	SINT32,
+	SINT64,
+	SINT8,
 	UINT16,
 	UINT32,
-	UINT8_N,
+	UINT64,
+	UINT8,
 	UINT8_DYN,
-	SINT8,
-	SINT16,
-	SINT32
+	UINT8_N
 } Com_SignalType;
 
 typedef uint16 Com_SignalIdType;
@@ -168,6 +175,8 @@ typedef struct {
 	const uint32 ComTxModeTimePeriod; /* @req COM178 */ /* Period of cyclic transmission for PERIODIC or MIXED. */
 } ComTxMode_type;
 
+/* @req COM496 */
+/* Configuartion container related to transmission parameters  */
 typedef struct {
 	const uint32 ComTxIPduMinimumDelayFactor; /* Minimum delay between successive transmissions of the I-PDU. */
 	const uint8 ComTxIPduUnusedAreasDefault; /* COM will fill unused areas within an IPdu with this bit patter. */
