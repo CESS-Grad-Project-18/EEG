@@ -15,6 +15,15 @@
 
 #include "ComStack_Types.h"
 
+#define Com_SignalTypeToSize(type, len) \
+	(type == UINT8   ? sizeof(uint8) : \
+	type == UINT16  ? sizeof(uint16) : \
+	type == UINT32  ? sizeof(uint32) : \
+	type == UINT8_N  ? sizeof(uint8) * len : \
+	type == SINT8   ? sizeof(sint8) : \
+	type == SINT16  ? sizeof(sint16) : \
+	type == SINT32 ? sizeof(sint32) : sizeof(boolean)) \
+
 typedef uint16 Com_BitPositionType;
 
 typedef enum{
@@ -78,22 +87,29 @@ typedef enum {
 	REPLACE
 } ComRxDataTimeoutAction_type;
 
+
+/* @req COM127 */
+/* Used to determine signedness of the signal and may be used to reserve storage */
 typedef enum {
 	BOOLEAN,
-	UINT8,
+	FLOAT32,
+	FLOAT64,
+	SINT16,
+	SINT32,
+	SINT64,
+	SINT8,
 	UINT16,
 	UINT32,
-	UINT8_N,
+	UINT64,
+	UINT8,
 	UINT8_DYN,
-	SINT8,
-	SINT16,
-	SINT32
+	UINT8_N
 } Com_SignalType;
 
 typedef uint16 Com_SignalIdType;
 typedef uint16 Com_SignalGroupIdType;
 typedef uint16 Com_IpduGroupIdType;
-typedef uint8:1 Com_IpduGroupVector; /*Check*/
+/* typedef uint8:1 Com_IpduGroupVector; Check*/
 typedef uint8 Com_ServiceIdType;
 
 
@@ -159,6 +175,8 @@ typedef struct {
 	const uint32 ComTxModeTimePeriod; /* @req COM178 */ /* Period of cyclic transmission for PERIODIC or MIXED. */
 } ComTxMode_type;
 
+/* @req COM496 */
+/* Configuartion container related to transmission parameters  */
 typedef struct {
 	const uint32 ComTxIPduMinimumDelayFactor; /* Minimum delay between successive transmissions of the I-PDU. */
 	const uint8 ComTxIPduUnusedAreasDefault; /* COM will fill unused areas within an IPdu with this bit patter. */
@@ -190,7 +208,7 @@ typedef struct {
 	const Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
 	union ComSizeInfo{
 		const uint8 ComBitSize; /* @req COM158 */ /* Size of signal in bits */
-		const uint32 ComSignalLength /* @req COM437 */ /* Size of signal in bytes for UINT8_N and UINT8_DYN */
+		const uint32 ComSignalLength; /* @req COM437 */ /* Size of signal in bytes for UINT8_N and UINT8_DYN */
 	} ComSizeInfo;
 	const uint32 ComErrorNotification; /** Notification function for error notification. */
 	const uint32 ComFirstTimeoutFactor; /* First timeout period for deadline monitoring. */
@@ -225,7 +243,7 @@ void Com_Init(const Com_ConfigType * config); /*SID 0x01*/
 void Com_DeInit(void); /*SID 0x02*/
 void Com_IpduGroupControl(Com_IpduGroupVector ipduGroupVector, boolean initialize); /*SID 0x03*/
 void Com_ReceptionDMControl(Com_IpduGroupVector ipduGroupVector); /*SID 0x06*/
-Com_StatusType Com_GetStatus(void) /*SID 0x07, returns COM_INIT or COM_UNINIT*/
+Com_StatusType Com_GetStatus(void); /*SID 0x07, returns COM_INIT or COM_UNINIT*/
 void Com_GetVersionInfo(Std_VersionInfoType* versioninfo) /*SID 0x09, Version out*/
 void Com_ClearIpduGroupVector(Com_IpduGroupVector ipduGroupVector); /*SID 0x1c*/
 void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType ipduGroupId, boolean bitval); /*SID 0x1d */
@@ -243,8 +261,8 @@ uint8 Com_ReceiveSignalGroup(Com_SignalGroupIdType SignalGroupId); /*SID 0x0e*/
 void Com_ReceiveShadowSignal(Com_SignalIdType SignalId, void* SignalDataPtr); /*SID 0x0f*/
 uint8 Com_SendSignalGroupArray(Com_SignalGroupIdType SignalGroupId, const uint8* SignalGroupArrayPtr); /*SID 0x23*/
 uint8 Com_ReceiveSignalGroupArray(Com_SignalGroupIdType SignalGroupId, uint8* SignalGroupArrayPtr); /*SID 0x24*/
-uint8 Com_InvalidateSignal(Com_SignalIdType SignalId) /*SID 0x10*/
-void Com_InvalidateShadowSignal(Com_SignalIdType SignalId) /*SID 0x16*/
+uint8 Com_InvalidateSignal(Com_SignalIdType SignalId); /*SID 0x10*/
+void Com_InvalidateShadowSignal(Com_SignalIdType SignalId); /*SID 0x16*/
 uint8 Com_InvalidateSignalGroup(Com_SignalGroupIdType SignalGroupId); /*SID 0x1b*/
 Std_ReturnType Com_TriggerIPDUSend(PduIdType PduId); /*SID 0x17*/
 Std_ReturnType Com_TriggerIPDUSendWithMetaData(PduIdType PduId, uint8* MetaData); /*SID 0x28*/
@@ -252,8 +270,12 @@ void Com_SwitchIpduTxMode(PduIdType PduId, boolean Mode); /*SID 0x27*/
 
 
 /* Helper functions */
+void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr, 
+	uint8 destByteLength, Com_BitPositionType segmentStartBitOffset, uint8 segmentBitLength);
 void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean *dataChanged);
 boolean Com_BufferLocked(PduIdType id);
+void Com_RxSignalProcess(const ComIPdu_type *IPdu);
+Com_BitPositionType Com_GetByteOffset(Com_BitPositionType BitNumber);
 
 extern ComSignalEndianess_type Com_SystemEndianness;
 extern Com_BufferStateType Com_BufferState[];
