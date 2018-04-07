@@ -1,5 +1,7 @@
 #include "Com.h"
-#include "Det.h"
+#if defined(USE_DET)
+#include "Det.h
+#endif
 #include "Com_MemMap.h"
 #include "PduR_Com.h"
 #include "SchM_Com.h"
@@ -48,12 +50,10 @@ void Com_Init(const Com_ConfigType * config){
 		assert(0); /* Check */
 	}
 	const ComSignal_type *Signal;
-	const ComGroupSignal_type *GroupSignal;
 	uint16 bufferIndex = 0, i, j;
 	for (i = 0; !ComConfig->ComIPdu[i].Com_EOL; i++) {
 	    boolean pduHasGroupSignal = FALSE;
 		const ComIPdu_type *IPdu = Com_GetIPDU(i);
-		Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(i);
 
 		if (ComConfig->ComNumOfIPDUs <= i) {
 			Det_ReportError(COM_INIT_ID ,COM_E_TOO_MANY_IPDU);
@@ -61,15 +61,15 @@ void Com_Init(const Com_ConfigType * config){
 			break;
 		}
 		/* Set the data pointer for this PDU */
-		IPdu->ComIPduDataPtr = (void *)&Com_Arc_Buffer[bufferIndex];
+		IPdu->ComIPduDataPtr = (void *)&Data_Buffer[bufferIndex];
 		bufferIndex += IPdu->ComIPduSize;
 		/* If this is a TX and cyclic I-PDU, configure the first deadline. */
 		if ((IPdu->ComIPduDirection == SEND) &&
 				((IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == PERIODIC) || (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == MIXED))){
-			Arc_IPdu->Com_Arc_TxIPduTimers.ComTxModeTimePeriodTimer = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeTimeOffset;
+			IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeTimePeriod = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeTimeOffset;
 		}
 
-		/* Reset firstTimeout. */
+		/* Reset timeout. */
 		firstTimeout = 0xFFFFFFFFu;
 
 		/* Initialize the memory with the default value. */
@@ -81,17 +81,15 @@ void Com_Init(const Com_ConfigType * config){
 		/* For each signal in this PDU. */
 		for (j = 0; (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[j] != NULL) ; j++) {
 			Signal = IPdu->ComIPduSignalRef[j];
-			Com_Arc_Signal_type * Arc_Signal = GET_ArcSignal(Signal->ComHandleId);
-
-			// Configure signal deadline monitoring if used.
+			/* Configure signal deadline monitoring if used. */
 			/* @req COM333 */ /* If timeout set to 0 */
 			if (Signal->ComTimeoutFactor > 0) {
 				if (Signal->ComSignalUseUpdateBit) {
 					/* @req COM292 */ /* Signals with update bit shall have their own deadline monitoring */
-					Arc_Signal->Com_Arc_DeadlineCounter = Signal->ComFirstTimeoutFactor; // Configure the deadline counter
+					/* DeadlineCounter = Signal->ComFirstTimeoutFactor; /* Configure the deadline counter */
 
 				} else {
-					// This signal does not use an update bit, and should therefore use per I-PDU deadline monitoring.
+					/* This signal does not use an update bit, and should therefore use per I-PDU deadline monitoring. */
 					if (Signal->ComFirstTimeoutFactor < firstTimeout) {
 						firstTimeout = Signal->ComFirstTimeoutFactor;
 					}
@@ -104,7 +102,7 @@ void Com_Init(const Com_ConfigType * config){
 			}
 				/* Initialize signal data. */
 				/* @req COM098 */
-				Com_WriteSignalDataToPdu(Signal->ComHandleId, Signal->ComSignalInitValue, &dataChanged);
+				Com_WriteToPDU(Com_GetSignal(Signal->ComHandleId), Signal->ComSignalInitValue, &dataChanged);
 			}
 		}
 		if (IPdu->ComIPduDirection == RECEIVE && IPdu->ComIPduSignalProcessing == DEFERRED) {
@@ -114,12 +112,11 @@ void Com_Init(const Com_ConfigType * config){
 		/* Configure per I-PDU based deadline monitoring. */
 		for (j = 0; (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[j] != NULL); j++) {
 			Signal = IPdu->ComIPduSignalRef[j];
-			Com_Arc_Signal_type * Arc_Signal = GET_ArcSignal(Signal->ComHandleId);
 
 			/* @req COM333 */ /* If timeout set to 0 */
 			if ( (Signal->ComTimeoutFactor > 0) && (!Signal->ComSignalUseUpdateBit) ) {
 				/* @req COM290 */
-				Arc_Signal->Com_Arc_DeadlineCounter = firstTimeout;
+				/* DeadlineCounter = firstTimeout; */
 			}
 		}
 	for (i = 0; i < ComConfig->ComNumOfIPDUs; i++) {
@@ -144,30 +141,12 @@ void Com_DeInit(void){
 	/* @req COM129 */ /* Com_DeInit shall stop all started I-PDU groups */
 	uint16 i;
 	for (i = 0; !ComConfig->ComIPdu[i].Com_EOL; i++) {
-		ComConfig.ComIPdu[i].isStarted = 0; /* TODO: Check correct action */
+		/* ComConfig->ComIPdu[i]->isStarted = 0; */ /* TODO: Check correct action */
 	}
 	initStatus = COM_UNINIT;
 /* TODO: Revise */
 } /*SID 0x02*/
 
-void Com_IpduGroupControl(Com_IpduGroupVector ipduGroupVector, boolean initialize){
-	if(COM_INIT != initStatus) {
-		Det_ReportError(COM_IPDUGROUPCONTROL_ID, COM_E_UNINIT);
-		return;
-	}
-    for (uint16 i = 0; !ComConfig->ComIPdu[i].Com_Arc_EOL; i++) {
-        const ComIPduGroup_type *const groupRefs = ComConfig->ComIPdu[i].ComIPduGroupRefs;
-        uint8 started = FALSE;
-        for(uint32 gri=0; (!groupRefs[gri].Com_Arc_EOL && !started); gri++){
-            uint8 byteIndex = groupRefs[gri].ComIPduGroupHandleId / 8;
-            uint8 bitIndex = groupRefs[gri].ComIPduGroupHandleId % 8;            
-            started |= ((ipduGroupVector[byteIndex] >> bitIndex) & 1u);
-        }
-        Com_Arc_Config.ComIPdu[i].Com_Arc_IpduStarted = started;
-    }
-}
-/* TODO: Revise */
-} /*SID 0x03*/
 
 void Com_ReceptionDMControl(Com_IpduGroupVector ipduGroupVector){
 /* TODO: Implement */
@@ -198,22 +177,6 @@ void Com_ClearIpduGroupVector(Com_IpduGroupVector ipduGroupVector){
 	memset(ipduGroupVector, 0, sizeof(Com_IpduGroupVector));
 /* TODO: Revise */
 } /*SID 0x1c*/
-
-void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType ipduGroupId, boolean bitval){
-	if(initStatus != COM_INIT){
-		Det_ReportError(COM_SETIPDUGROUP_ID, COM_E_UNINIT);
-		return;
-	}
-	uint8 byteIndex = ipduGroupId / 8;
-	uint8 bitIndex = ipduGroupId % 8;
-	if(bitval){
-		ipduGroupVector[byteIndex] |= (1u<<bitIndex);
-	}else{
-		ipduGroupVector[byteIndex] &= ~(1u<<bitIndex);
-	}
-}
-/* TODO: Revise */
-} /*SID 0x1d */
 
 
 
@@ -298,8 +261,8 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
                     break;
             }
             /* Do not cancel outstanding repetitions triggered by other signals  */
-            if(IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitions < numOfReps){
-                IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitions = numOfReps;
+            if(IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions < numOfReps){
+                IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions = numOfReps;
             }
     }else{
         return COM_SERVICE_NOT_AVAILABLE;
@@ -385,16 +348,15 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 		return;
 	}
 	const ComIPdu_type *IPdu = Com_GetIPDU(RxPduId);
-	Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(RxPduId);
 	imask_t state;
 	Irq_Save(state);
 	/* @req COM649 */ /* Interrups disabled */
 	/* If I-PDU is stopped */
 	/* @req COM684 */
-	if (!Arc_IPdu->Com_Arc_IpduStarted) {
+	/*if (!IPdu->isStarted) {
 		Irq_Restore(state);
 		return;
-	}
+	}*/
 	/* Check callout status */
 	/* @req COM555 */ /* Notification (Class 1) called immediately after the message has been stored in the receiving message object */
 	/* @req COM700 */ /* The I-PDU callout on receiver side can be configured to implement user-defined receive filtering mechanisms. */
@@ -532,7 +494,7 @@ void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr,
 			shiftReg &= pduStartByteMask;
 			clearReg &= pduStartByteMask;
 		}
-		*(pdu - pduByteNr) &= (uint16)~(clearReg & 0x00FFu);
+		*(pdu - pduByteNr) &= (uint16)(~clearReg | ~0x00FFu);
 		*(pduSignalMask - pduByteNr) |= (uint16) (clearReg & 0x00FFu);
 		*(pdu - pduByteNr) |= shiftReg & 0x00FFu;
 
@@ -548,7 +510,7 @@ void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr,
 				shiftReg &= pduStartByteMask;
 				clearReg &= pduStartByteMask;
 			}
-			*(pdu - pduByteNr) &= (uint16)~(clearReg & 0x00FFu);
+			*(pdu - pduByteNr) &= (uint16)(~clearReg | ~0x00FFu);
 			*(pduSignalMask - pduByteNr) |= (uint16) (clearReg & 0x00FFu);
 			*(pdu - pduByteNr) |= shiftReg & 0x00FFu;
 		}
@@ -582,8 +544,8 @@ void Com_RxSignalProcess(const ComIPdu_type *IPdu){
 		/* If this signal uses an update bit, then it is only considered if this bit is set. */
 		/* @req COM324 */
 		/* @req COM067 */
-		if ((!Signal->ComSignalArcUseUpdateBit) ||
-			((Signal->ComSignalArcUseUpdateBit) && (Com_TestBit(IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition)) ) ) {
+		if ((!Signal->ComSignalUseUpdateBit) ||
+			((Signal->ComSignalUseUpdateBit) && (Com_TestBit(IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition)) ) ) {
 			/* If reception deadline monitoring is used. */
 			if (Signal->ComTimeoutFactor > 0) { 
 				/* Reset the deadline monitoring timer. */
