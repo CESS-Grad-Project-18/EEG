@@ -1,6 +1,6 @@
 #include "Com.h"
 #if defined(USE_DET)
-#include "Det.h
+#include "Det.h"
 #endif
 #include "Com_MemMap.h"
 #include "PduR_Com.h"
@@ -374,7 +374,7 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 	/* !req COM574 */ /* When unpacking an I-PDU, COM module shall check the received data length (PduInfoPtr->SduLength) and unpack and notify only completely received signals via ComNotification. */
 	/* Copy IPDU data */
 	memcpy(IPdu->ComIPduDataPtr, PduInfoPtr->SduDataPtr, IPdu->ComIPduSize);
-	Com_RxProcessSignals(IPdu);
+	Com_RxSignalProcess(IPdu);
 	Irq_Restore(state);
 	return;
 } /*SID 0x42*/
@@ -577,7 +577,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 	/* @req COM221 */ /* COM module shall perform endianness conversion before the I-PDU callout on sender side. */
 	const ComSignal_type * Signal =  Com_GetSignal(signalId);
 	Com_SignalType signalType = Signal->ComSignalType;
-	uint8 signalLength = Signal->ComSizeInfo->ComBitSize / 8;
+	uint8 signalLength = Signal->ComBitSize / 8;
 	Com_BitPositionType bitPosition = Signal->ComBitPosition;
 	uint8 bitSize = Signal->ComBitSize;
 	ComSignalEndianess_type endianness = Signal->ComSignalEndianess;

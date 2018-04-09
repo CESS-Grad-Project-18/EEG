@@ -206,10 +206,10 @@ typedef struct {
 /** Configuration structure for signals and signal groups. */
 typedef struct {
 	const Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
-	union ComSizeInfo{
+	union {
 		const uint8 ComBitSize; /* @req COM158 */ /* Size of signal in bits */
 		const uint32 ComSignalLength; /* @req COM437 */ /* Size of signal in bytes for UINT8_N and UINT8_DYN */
-	} ComSizeInfo;
+	};
 	const uint32 ComErrorNotification; /** Notification function for error notification. */
 	const uint32 ComFirstTimeoutFactor; /* First timeout period for deadline monitoring. */
 	const uint16 ComHandleId; /* @req COM165 */ /* Identifier for the signal. */
