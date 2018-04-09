@@ -16,6 +16,28 @@
 /*      void Det_ReportError(ModuleId, ApiId, ErrorId) */
 
 /* The state of the PDU router. */
+
+
+Std_ReturnType PduR_RouteTransmit(const PduRDestPdu_type *destination, const PduInfoType *pduInfo) {
+	int err = 0;
+	Std_ReturnType retVal = E_NOT_OK;
+	switch (destination->DestModule) {
+	case PDUR_CANIF:
+		retVal = CanIf_Transmit(destination->DestPduId, pduInfo);
+		break;
+	case PDUR_COM:
+		Com_RxIndication(destination->DestPduId, pduInfo);
+		break;
+	default:
+		retVal = E_NOT_OK;
+		break;
+	}
+	if(err){
+		/* TODO: Error reporting here. */
+	}
+	return retVal;
+}
+
 PduR_StateType PduRState = PDUR_UNINIT;
 
 
@@ -60,4 +82,16 @@ void PduR_GetVersionInfo (Std_VersionInfoType* versionInfo){
 uint32 PduR_GetConfigurationId (void) {
 	return PduRConfig->PduRConfigurationId;
 }
+
+
+Std_ReturnType PduR_ComTransmit(PduIdType ComTxPduId, const PduInfoType *PduInfoPtr) {
+	Std_ReturnType retVal = E_OK;
+	const PduRRoutingPath_type *route = PduRConfig->RoutingPaths[PduId];
+	for (uint8 i = 0; route->PduRDestPdus[i] != NULL; i++) {
+		const PduRDestPdu_type * destination = route->PduRDestPdus[i];
+		retVal |= PduR_RouteTransmit(destination, PduInfo);
+	}
+	return retVal;
+}
+
 #endif

@@ -62,24 +62,26 @@ typedef enum {
 	TABLE
 } CanIfPrivateSoftwareFilterType;
 
-/** Type of the upper layer interfacing this module */
+/* Type of the upper layer interfacing this module */
 typedef enum {
-	CANIF_USER_TYPE_CAN_NM,
-	CANIF_USER_TYPE_CAN_TP,
-	CANIF_USER_TYPE_CAN_PDUR,
-	CANIF_USER_TYPE_J1939TP,
-	CANIF_USER_TYPE_XCP,
-	CANIF_USER_TYPE_CAN_SPECIAL
-} CanIf_UserTypeType;
+	CAN_TP,
+	PDUR,
+	CAN_NM,
+	J1939TP,
+	XCP,
+	CDD,
+	J1939NM,
+	CAN_TSYN
+} CanIfTxPduUserTxConfirmationUL;
 
 /** Notification function for CANIF_USER_TYPE_CAN_SPECIAL */
 typedef void (*CanIf_FuncTypeCanSpecial)(uint8 channel, PduIdType pduId, const uint8 *sduPtr, uint8 dlc, Can_IdType canId);
 
 /** Defines if PDU Can id can be changed at runtime. */
 typedef enum {
-  CANIF_PDU_TYPE_STATIC = 0,
-  CANIF_PDU_TYPE_DYNAMIC       /**< Not supported */
-} CanIf_PduTypeType;
+  STATIC,
+  DYNAMIC
+} CanIfTxPduType;
 
 /* @req CANIF590 */
 /* CAN Identifier of the transmit CAN L-PDU */
@@ -89,6 +91,28 @@ typedef enum {
 	STANDARD_CAN, /* CAN frame with standard identifier (11 bits) */
 	STANDARD_FD_CAN /* CAN FD frame with standard identifier (11 bits) */
 } CanIfTxPduCanIdType;
+
+typedef enum {
+	/** Channel is in the offline mode ==> no transmission or reception */
+  CANIF_GET_OFFLINE = 0,
+  /** Receive path of the corresponding channel is enabled and
+   *  transmit path is disabled */
+  CANIF_GET_RX_ONLINE,
+  /** Transmit path of the corresponding channel is enabled and
+   *  receive path is disabled */
+  CANIF_GET_TX_ONLINE,
+  /** Channel is in the online mode ==> full operation mode */
+  CANIF_GET_ONLINE,
+  /** Transmit path of the corresponding channel is in
+   *  the offline mode ==> transmit notifications are processed but
+   *  transmit requests are blocked. The receiver path is disabled. */
+  CANIF_GET_OFFLINE_ACTIVE,
+  /** Transmit path of the corresponding channel is in the offline
+   *  active mode ==> transmit notifications are processed but transmit
+   *  requests are blocked. The receive path is enabled. */
+  CANIF_GET_OFFLINE_ACTIVE_RX_ONLINE
+	
+} CanIf_ChannelGetModeType;
 
 //-------------------------------------------------------------------
 /*
@@ -432,5 +456,26 @@ typedef struct {
 
 	const uint8							*Arc_ChannelDefaultConfIndex;
 } CanIf_ConfigType;
+
+
+typedef struct{
+
+} CanIfPrivateCfg;
+
+/* 181 */
+typedef struct{
+	boolean CanIfTxPduReadNotifyStatus; /* Default false*/
+	CanIfTxPduUserTxConfirmationUL PduUserTxConfirmationUL;
+	CanIfTxPduCanIdType PduCanIdType;
+	uint32 CanIfTxPduId;
+	/* CanIfTxPduUserTxConfirmationName */
+	CanIfTxPduCanIdMask;
+	CanIfTxPduPnFilterPdu
+	CanIfTxPduCanId
+	CanIfTxPduBufferRef
+	CanIfTxPduType
+	boolean CanIfTxPduTriggerTransmit;
+	/* CanIfTxPduUserTriggerTransmitName */
+} CanIfTxPduCfg;
 
 #endif /*CANIF_TYPES_H_*/

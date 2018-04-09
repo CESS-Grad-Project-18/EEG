@@ -3,6 +3,7 @@
 
 #include "ComStack_Types.h"
 
+/* @req PDUR324 */
 /* PduR_StateType defines the states of which the PDU router can be in */
 typedef enum {
 	PDUR_UNINIT, /* PDU Router is not initialized. */
