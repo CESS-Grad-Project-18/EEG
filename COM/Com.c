@@ -577,7 +577,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 	/* @req COM221 */ /* COM module shall perform endianness conversion before the I-PDU callout on sender side. */
 	const ComSignal_type * Signal =  Com_GetSignal(signalId);
 	Com_SignalType signalType = Signal->ComSignalType;
-	uint8 signalLength = Signal->ComSizeInfo->ComBitSize / 8;
+	uint8 signalLength = Signal->ComBitSize / 8;
 	Com_BitPositionType bitPosition = Signal->ComBitPosition;
 	uint8 bitSize = Signal->ComBitSize;
 	ComSignalEndianess_type endianness = Signal->ComSignalEndianess;

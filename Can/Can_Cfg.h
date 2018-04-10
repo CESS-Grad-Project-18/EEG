@@ -30,7 +30,10 @@
 #define CANIF_ID_TxMsgTime                        3
 #define CANIF_ID_HS_NM_TX                         4
 
-
+typedef enum {
+	CAN_CTRL_1 = 0,
+	CAN_CONTROLLER_CNT = 1
+} Can_ControllerIdType;
 
 #endif
 
