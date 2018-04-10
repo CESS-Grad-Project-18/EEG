@@ -10,8 +10,8 @@
 #include "Com.h"
 #endif
 
-#define CANIF_VENDOR_ID          VENDOR_ID_ARCCORE
-#define CANIF_MODULE_ID          MODULE_ID_CANIF
+#define CANIF_VENDOR_ID          1
+#define CANIF_MODULE_ID          2
 #define CANIF_AR_MAJOR_VERSION   3
 #define CANIF_AR_MINOR_VERSION   1
 #define CANIF_AR_PATCH_VERSION   5
@@ -52,21 +52,16 @@
 #define CANIF_CONTROLLER_BUSOFF_ID    0x16
 
 #define CANIF_SETWAKEUPEVENT_ID       0x40
-#define CANIF_ARCERROR_ID           0x41
 
 void CanIf_Init(const CanIf_ConfigType *ConfigPtr);
 
-void CanIf_InitController(uint8  Controller,
-	    uint8  ConfigurationIndex);
+void CanIf_InitController(uint8  Controller, uint8  ConfigurationIndex);
 
-Std_ReturnType CanIf_SetControllerMode(uint8 Controller,
-		CanIf_ControllerModeType ControllerMode);
+Std_ReturnType CanIf_SetControllerMode(uint8 Controller, CanIf_ControllerModeType ControllerMode);
 
-Std_ReturnType CanIf_GetControllerMode(uint8 Controller,
-		CanIf_ControllerModeType *ControllerModePtr);
+Std_ReturnType CanIf_GetControllerMode(uint8 Controller, CanIf_ControllerModeType *ControllerModePtr);
 
-Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId,
-		const PduInfoType *PduInfoPtr);
+Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId, const PduInfoType *PduInfoPtr);
 
 #if ( CANIF_READRXPDU_DATA_API == STD_ON )
 Std_ReturnType CanIf_ReadRxPduData(PduIdType CanRxPduId,
