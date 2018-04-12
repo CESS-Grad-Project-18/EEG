@@ -99,6 +99,13 @@ typedef enum {
 } Can_HohType;
 
 
+/* @req CANIF742 */
+typedef enum{
+	UINT8,
+	UINT16
+} CanIf_PublicHandleType;
+
+
 typedef enum {
 	CANIF_CanIfCtrlCfg,
 	CANIF_CHANNEL_CNT
@@ -387,11 +394,65 @@ typedef struct {
 
 
 typedef struct{
- /* TODO: Implement */
+	/* @req CANIF827 */
+	/*  Defines if the buffer element length */	
+	boolean CanIfFixedBuffer;
+
+	/* @req CANIF617 */
+	/* DLC check enabled or not */		
+	boolean CanIfPrivateDlcCheck;
+
+	/* @req CANIF619 */
+	/* Filtering mechanism (Reception only) */	
+	CanIf_PrivateSoftwareFilterType CanIfPrivateSoftwareFilterType;
+
+	/* @req CANIF675 */
+	/* Filtering mechanism (Reception only) */	
+	boolean CanIfSupportTTCAN; /* SET TO FALSE ALWAYS */
+
+
 } CanIf_PrivateCfgType;
 
+/* @req CANIF246 */
 typedef struct{
- /* TODO: Implement */
+	/* @req CANIF824 */
+ 	/* Enable support for dynamic ID handling using L-SDU MetaData. */
+ 	boolean CanIfMetaDataSupport;
+
+	/* @req CANIF522 */
+ 	/* Enable/disable dummy API for upper layer modules which allows to request the cancellation of an I-PDU */
+ 	boolean CanIfPublicCancelTransmitSupport; /* Not needed?*/
+
+	/* @req CANIF671 */
+ 	/* Header files for callback functions */
+	char CanIfPublicCddHeaderFile[32]; /* Not needed? */
+
+	/* @req CANIF614 */
+ 	/* DET ON/OFF */
+	boolean CanIfPublicDevErrorDetect; /* Not needed? */
+
+	CanIf_PublicHandleType  CanIfPublicHandle;
+
+	/* @req CANIF839 */
+ 	/* Pretended network features support */
+	boolean CanIfPublicIcomSupport; /* Not needed? */
+
+	/* @req CANIF612 */
+ 	/* Multiple CAN drivers support */
+	boolean CanIfPublicMultipleDrvSupport; 
+
+	/* @req CANIF772 */
+	/* Partial network features support */
+	boolean CanIfPublicPnSupport; /* Not needed? */
+
+	/* @req CANIF607 */
+	/* CanIf_ReadRxPduData enable/disable (Rcvd L-SDUs) */
+	boolean CanIfPublicReadRxPduDataApi;
+
+	/* @req CANIF608 */
+	/* Reading notification status enable/disable (Rcvd L-PDUs) */
+	boolean CanIfPublicReadRxPduNotifyStatusApi;
+
 } CanIf_PublicCfgType;
 
 #endif /*CANIF_TYPES_H_*/

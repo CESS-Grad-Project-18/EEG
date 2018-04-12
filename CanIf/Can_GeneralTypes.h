@@ -17,13 +17,6 @@ typedef enum {
 } Can_StateTransitionType;
 
 typedef enum {
-  CANIF_CS_UNINIT = 0, /* Default mode of the CAN driver and all CAN controllers connected to one CAN network after power on. */
-  CANIF_CS_STOPPED, /* At least one of all CAN controllers connected to one CAN network are halted and does not operate on the bus. */
-  CANIF_CS_STARTED, /* All CAN controllers connected to one CAN network are started by the CAN driver and in full-operational mode. */
-  CANIF_CS_SLEEP /* At least one of all CAN controllers connected to one CAN network are set into the SLEEP mode and can be woken up by request of the CAN driver or by a network event (must be supported by CAN hardware) */
-} CanIf_ControllerModeType;
-
-typedef enum {
 	CAN_OK, /* Successful operation */
 	CAN_NOT_OK, /* Error occurred or wakeup event occurred during sleep transition */
 	CAN_BUSY /* Transmit request not processed because no transmit object was available*/
