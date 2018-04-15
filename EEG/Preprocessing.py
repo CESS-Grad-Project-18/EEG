@@ -16,6 +16,23 @@ def SymetricCalc(values):
         return np.array(subVertical(values)).flatten().tolist()
     if(SymetricMethod == "DCAU"):
         return np.array(divHorizontal(values)).flatten().tolist()
+    
+def CARFilter(channel_data):
+    """
+    Function that performs common average reference filtering on collected EEG signal
+	(Applied after signal collection)
+    :param channel_data: The array containing the EEG channel signals (AF3, AF4,Oz, etc.)
+    :return: Array containing channels after CAR filter has been applied to them
+    """
+	data_size = len(channel_data)
+	car_channel_data = np.zeros_like(channel_data)
+	for i in range(data_size):
+		car_channel = np.zeros_like(channel_data[0])
+		for j in range(data_size):
+			if(i != j):
+				car_channel = np.add(car_channel, channel_data[j])
+		car_channel_data[i] = channel_data[i] - np.divide(car_channel, float(data_size - 1))
+	return car_channel_data
 
 def FilterData(data,lower,higher):
     Fs = 128.0
