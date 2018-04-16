@@ -5,67 +5,18 @@
 #if defined(USE_DET)
 #include "Det.h"
 #endif
-#if defined(USE_DEM)
-#include "Dem.h"
-#endif
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define GET_CONTROLLER_CONFIG(_controller)	\
-        					&Can_Global.config->CanConfigSet->CanController[(_controller)]
 
-#define GET_CALLBACKS() \
-							(Can_Global.config->CanConfigSet->CanCallbacks)
-
-#define GET_PRIVATE_DATA(_controller) \
-									&CanUnit[_controller]
-
-#define GET_CONTROLLER_CNT() (CAN_CONTROLLER_CNT)
-
-//-------------------------------------------------------------------
-
-#if ( CAN_DEV_ERROR_DETECT == STD_ON )
-#define VALIDATE(_exp,_api,_err ) \
-        if( !(_exp) ) { \
-          Det_ReportError(MODULE_ID_CAN,0,_api,_err); \
-          return CAN_NOT_OK; \
-        }
-
-#define VALIDATE_NO_RV(_exp,_api,_err ) \
-        if( !(_exp) ) { \
-          Det_ReportError(MODULE_ID_CAN,0,_api,_err); \
-          return; \
-        }
-
-#define DET_REPORTERROR(_x,_y,_z,_q) Det_ReportError(_x, _y, _z, _q)
-#else
-#define VALIDATE(_exp,_api,_err )
-#define VALIDATE_NO_RV(_exp,_api,_err )
-#define DET_REPORTERROR(_x,_y,_z,_q)
-#endif
-
-#if defined(USE_DEM)
-#define VALIDATE_DEM_NO_RV(_exp,_err ) \
-        if( !(_exp) ) { \
-          Dem_ReportErrorStatus(_err, DEM_EVENT_STATUS_FAILED); \
-          return; \
-        }
-#else
-#define VALIDATE_DEM_NO_RV(_exp,_err )
-#endif
-
-//-------------------------------------------------------------------
-
-typedef enum
-{
+typedef enum {
   CAN_UNINIT = 0,
   CAN_READY
 } Can_DriverStateType;
 
 // Mapping between HRH and Controller//HOH
-typedef struct Can_Arc_ObjectHOHMapStruct
-{
+typedef struct {
   CanControllerIdType CanControllerRef;    // Reference to controller
   const Can_HardwareObjectType* CanHOHRef;       // Reference to HOH.
 } Can_Arc_ObjectHOHMapType;
@@ -113,12 +64,6 @@ typedef struct {
 Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
 {
   {
-    .state = CANIF_CS_UNINIT,
-  },{
-    .state = CANIF_CS_UNINIT,
-  },{
-    .state = CANIF_CS_UNINIT,
-  },{
     .state = CANIF_CS_UNINIT,
   },{
     .state = CANIF_CS_UNINIT,
@@ -202,27 +147,16 @@ static void Can_WakeIsr( int unit );
 
 void Can_0_RxIsr( void  ) {	Can_RxIsr(CAN_CTRL_0); }
 void Can_1_RxIsr( void  ) {	Can_RxIsr(CAN_CTRL_1); }
-void Can_2_RxIsr( void  ) {	Can_RxIsr(CAN_CTRL_2); }
-void Can_3_RxIsr( void  ) {	Can_RxIsr(CAN_CTRL_3); }
-void Can_4_RxIsr( void  ) {	Can_RxIsr(CAN_CTRL_4); }
 
 void Can_0_TxIsr( void  ) {	Can_TxIsr(CAN_CTRL_0); }
 void Can_1_TxIsr( void  ) {	Can_TxIsr(CAN_CTRL_1); }
-void Can_2_TxIsr( void  ) {	Can_TxIsr(CAN_CTRL_2); }
-void Can_3_TxIsr( void  ) {	Can_TxIsr(CAN_CTRL_3); }
-void Can_4_TxIsr( void  ) {	Can_TxIsr(CAN_CTRL_4); }
 
 void Can_0_ErrIsr( void  ) {	Can_ErrIsr(CAN_CTRL_0); }
 void Can_1_ErrIsr( void  ) {	Can_ErrIsr(CAN_CTRL_1); }
-void Can_2_ErrIsr( void  ) {	Can_ErrIsr(CAN_CTRL_2); }
-void Can_3_ErrIsr( void  ) {	Can_ErrIsr(CAN_CTRL_3); }
-void Can_4_ErrIsr( void  ) {	Can_ErrIsr(CAN_CTRL_4); }
 
 void Can_0_WakeIsr( void  ) {	Can_WakeIsr(CAN_CTRL_0); }
 void Can_1_WakeIsr( void  ) {	Can_WakeIsr(CAN_CTRL_1); }
-void Can_2_WakeIsr( void  ) {	Can_WakeIsr(CAN_CTRL_2); }
-void Can_3_WakeIsr( void  ) {	Can_WakeIsr(CAN_CTRL_3); }
-void Can_4_WakeIsr( void  ) {	Can_WakeIsr(CAN_CTRL_4); }
+
 
 //-------------------------------------------------------------------
 
@@ -758,27 +692,6 @@ void Can_MainFunction_Mode(void) {
     /* TODO: Implement */
 }
 
-
-
-
-/**
- * Get send/receive/error statistics for a controller
- *
- * @param controller The controller
- * @param stats Pointer to data to copy statistics to
- */
-
-#if (USE_CAN_STATISTICS == STD_ON)
-void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType *stats)
-{
-  Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
-  *stats = canUnit->stats;
-}
-#endif
-
-#else // Stub all functions for use in simulator environment
-
-#include "debug.h"
 
 void Can_Init( const Can_ConfigType *Config )
 {

@@ -293,7 +293,7 @@ typedef struct {
 
   /** Defines the type of software filtering that should be used
    *  for this receive object. */
-	CanIf_SoftwareFilterTypeType CanIfSoftwareFilterType;
+	CanIf_PrivateSoftwareFilterType CanIfSoftwareFilterType;
 
   /* Acceptance filters, 1 - Care, 0 - Don't care. */
 	uint32 CanIfCanRxPduCanIdMask;

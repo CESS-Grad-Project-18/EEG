@@ -65,15 +65,26 @@
 #include "Can_Cfg.h"
 
 
+typedef struct{
+	union{
+        uint16 ID;  /* Standard 11 bit ID */
+        uint32 IDE; /* Extended 29 bit ID */
+    };
+    uint8 Length;
+    boolean Extended;
+    boolean Error;
+    boolean Remote;
+    uint8* Sdu;
+    /* SignalInfo* Signals; */
+} Can_PduType;
+
+
 /* Services affecting the complete hardware unit */
 void Can_Init(const Can_ConfigType *Config); /* SID: 0x00 */
 void Can_DeInit(void); /* TODO: check if needed */
 void Can_GetVersionInfo(Std_VersionInfoType* versioninfo); /* SID: 0x07 */
 Std_ReturnType Can_CheckBaudrate(uint8 Controller, uint16 Baudrate); /* SID: 0x0E */
 
-#if ( CAN_VERSION_INFO_API == STD_ON )
-#define Can_GetVersionInfo(_vi) STD_GET_VERSION_INFO(_vi,CAN)
-#endif
 
 /* Services affecting one single CAN Controller */
 Std_ReturnType Can_ChangeBaudrate(uint8 Controller, uint16 Baudrate); /* SID: 0x0D */

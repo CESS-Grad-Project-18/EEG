@@ -38,7 +38,7 @@ typedef struct {
 	uint8 length; /* Length (8 bytes max) */
 	Can_IdType 	id; /* the CAN ID, 29 or 11-bit */
 	const uint8 *sdu; /* Data pointer */
-} Can_PduType;
+} Can_PduType; /* here? */
 
 typedef enum {
   CANTRCV_TRCVMODE_NORMAL = 0, /* Transceiver mode NORMAL */
