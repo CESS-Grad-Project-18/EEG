@@ -25,18 +25,8 @@
 #include "PduR_Types.h"
 #include "PduR_PbCfg.h"
 
-#if PDUR_COM_SUPPORT == STD_ON
 #include "PduR_Com.h"
-#endif
-#if PDUR_CANIF_SUPPORT == STD_ON
 #include "PduR_CanIf.h"
-#endif
-#if PDUR_CANTP_SUPPORT == STD_ON
-#include "PduR_CanTp.h"
-#endif
-#if PDUR_DCM_SUPPORT == STD_ON
-#include "PduR_Dcm.h"
-#endif
 
 
 extern const PduR_PBConfigType *PduRConfig;
@@ -44,47 +34,6 @@ extern const PduR_PBConfigType *PduRConfig;
 /*  The state of the PDU router. */
 extern PduR_StateType PduRState;
 
-
-#if (PDUR_DEV_ERROR_DETECT == STD_ON)
-
-#define PDUR_DET_REPORTERROR(_x,_y,_z,_o) Det_ReportError(_x,_y,_z,_o)
-
-#define PDUR_VALIDATE_INITIALIZED(_api,...) \
-	if ((PduRState == PDUR_UNINIT) || (PduRState == PDUR_REDUCED)) { \
-		Det_ReportError(MODULE_ID_PDUR, PDUR_INSTANCE_ID, _api, PDUR_E_INVALID_REQUEST); \
-		return __VA_ARGS__; \
-	}
-
-#define PDUR_VALIDATE_PDUPTR(_api, _pduPtr, ...) \
-	if ((_pduPtr == NULL) && (PDUR_DEV_ERROR_DETECT)) { \
-		Det_ReportError(MODULE_ID_PDUR, PDUR_INSTANCE_ID, _api, PDUR_E_DATA_PTR_INVALID); \
-		return __VA_ARGS__; \
-	}
-
-#define PDUR_VALIDATE_PDUID(_api, _pduId, ...) \
-	if ((_pduId >= PduRConfig->NRoutingPaths) && PDUR_DEV_ERROR_DETECT) { \
-		Det_ReportError(MODULE_ID_PDUR, PDUR_INSTANCE_ID, _api, PDUR_E_PDU_ID_INVALID); \
-		return __VA_ARGS__; \
-	}
-
-
-#else
-#define PDUR_DET_REPORTERROR(_x,_y,_z,_o)
-#define PDUR_VALIDATE_INITIALIZED(_api,...)
-#define PDUR_VALIDATE_PDUPTR(_api, _pduPtr, ...)
-#define PDUR_VALIDATE_PDUID(_api, _pduId, ...)
-
-#endif
-
-/* Zero Cost Operation function definitions
- * These macros replaces the original functions if zero cost
- * operation is desired. */
-#if PDUR_ZERO_COST_OPERATION == STD_ON
-#define PduR_Init(...)
-#define PduR_GetVersionInfo(...)
-#define PduR_GetConfigurationId(...) 0
-
-#else /* Not zero cost operation */
 
 /* General PDU Router functionality */
 void PduR_Init(const PduR_PBConfigType* ConfigPtr); /* SID: 0x00 */
@@ -110,5 +59,124 @@ Std_ReturnType PduR_DcmTransmit(PduIdType DcmTxPduId, const PduInfoType *PduInfo
 Std_ReturnType PduR_IpdumTransmit(PduIdType IpdumTxPduId, const PduInfoType *PduInfoPtr); /* SID: 0x19 */
 void PduR_IpdumTxConfirmation(PduIdType IpdumLoTxPduId) /* SID: 0x1A */
 void PduR_IpdumRxIndication(PduIdType IpdumLoRxPduId, const uint8 *IpdumSduPtr); /* SID: 0x1B */
+
+/*		PduR structs		*/
+
+typedef enum{
+	PDUR_UNINIT,
+	PDUR_ONLINE,
+	PDUR_REDUCED
+} PduR_StateType;
+
+typedef struct {
+	PduRBswModule* PduRBswModuleRef;
+	boolean PduRRetransmission;
+	boolean PduRUseTag;
+	boolean PduRTxConfirmation;
+	boolean PduRCancelTransmit;
+	boolean PduRCommunicationInterface;
+	boolean PduRTransportProtocol;
+	boolean PduRTriggertransmit;
+	boolean PduRUpperModule;
+	boolean PduRLowerModule;
+	boolean PduRChangeParameterApi;
+	boolean PduRCancelReceive;
+}PduRBswModules;
+
+typedef struct {
+	boolean PduRDevErrorDetect;
+	boolean PduRVersionInfoApi;
+	boolean PduRZeroCostOperation;
+	boolean PduRMetaDataSupport;
+} PduRGeneral;
+
+typedef struct {
+	uint16 PduRConfigurationId;
+	uint16 PduRMaxRoutingPathCnt;
+	uint16 PduRMaxRoutingPathGroupCnt;
+	uint16 PduRMaxRoutingTableCnt;
+	PduRRoutingPathGroup* PduRRoutingPathGroup;
+	PduRRoutingTable* PduRRoutingTable;
+	PduRTpBufferTable PduRTpBufferTable;
+	PduRTxBufferTable PduRTxBufferTable;
+} PduRRoutingTables;
+
+typedef struct {
+	boolean PduRIsEnabledAtInit;
+	uint16 PduRRoutingPathGroupId;
+	PduRDestPdu* PduRDestPduRef;
+
+} PduRRoutingPathGroup;
+
+typedef struct {
+	PduRRoutingPath* PduRRoutingPath;
+} PduRRoutingTable;
+
+typedef struct {
+	PduRDestPdu* PduRDestPdu;
+	PduRSrcPdu PduRSrcPdu;
+
+} PduRRoutingPath;
+
+typedef enum{
+	PDUR_DIRECT,
+	PDUR_TRIGGERTRANSMIT
+} PduRDestPduDataProvision;
+typedef struct {
+	PduRDestPduDataProvision PduRDestPduDataProvision;
+	uint16 PduRDestPduHandleId;
+	uint16 PduRTpThreshold;
+	boolean PduRTransmissionConfirmation;
+	Pdu* PduRDestPduRef;
+	PduRTxBuffer* PduRDestTxBufferRef;
+	PduRDefaultValue PduRDefaultValue;
+} PduRDestPdu;
+
+typedef struct {
+	uint16 PduRSourcePduHandleId;
+	boolean PduRSrcPduUpTxConf;
+	Pdu* PduRSrcPduRef;
+} PduRSrcPdu;
+
+typedef struct {
+	PduRDefaultValueElement* PduRDefaultValueElement;
+} PduRDefaultValue;
+
+typedef struct {
+	uint8 PduRDefaultValueElement;
+	uint32 PduRDefaultValueElementBytePosition;
+} PduRDefaultValueElement;
+
+typedef struct {
+	uint16 PduRMaxTpBufferNumber;
+	PduRTpBuffer* PduRTpBuffer;
+} PduRTpBufferTable;
+
+typedef struct {
+	uint32 PduRTpBufferLength;
+} PduRTpBuffer;
+
+typedef struct {
+	uint16 PduRMaxTxBufferNumber; 
+	PduRTxBuffer* PduRTxBuffer;
+} PduRTxBufferTable;
+
+typedef struct {
+	uint32 PduRPduMaxLength;
+	uint8 PduRTxBufferDepth;
+} PduRTxBuffer;
+
+typedef struct {
+	ComIPdu_type ComPduIdRef;
+	PduRSrcPdu PduRSrcPduRef;
+	PduRDestPdu PduRDestPduRef;
+	CanIf_RxPduCfgType CanIfRxPduRef;
+} Pdu;
+
+typedef struct {
+	uint16 PduR_PBConfigIdType;
+	uint16 PduR_RoutingPathGroupIdType;
+	PduR_StateType PduR_StateType;
+} PduR_PBConfigType;
 
 #endif /* PDUR_H */
