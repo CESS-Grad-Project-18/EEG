@@ -52,7 +52,6 @@ typedef enum {
 } CanIf_NotifStatusType;
 
 
-/********************************************/
 
 /* @req CANIF619*/
 typedef enum {
@@ -114,6 +113,8 @@ typedef enum {
 
 typedef enum {
 	HWObj_1,
+	TX,
+	RX,
 	NUM_OF_HRHS
 } Can_HRHType;
 
@@ -198,7 +199,7 @@ typedef struct {
 
   /** End Of List. Set to TRUE if this is the last object in the list. */
   boolean CanIf_EOL;
-} CanIf_HthConfigType;
+} CanIf_HthCfgType;
 
 //-------------------------------------------------------------------
 /*
@@ -275,7 +276,7 @@ typedef struct {
 	/* Data length code (in bytes) of transmit CAN L-PDUs used by the CAN Driver for CAN L-PDU transmission. 0 - 8 bytes. */
 	uint8 CanIfCanRxPduIdDlc;
 
-  /** This parameter defines the type of the receive indication call-outs called to
+  /* This parameter defines the type of the receive indication call-outs called to
    *  the corresponding upper layer the used TargetRxPduId belongs to. */
 	CanIf_UserTypeType  CanIfRxUserType;
 
@@ -293,7 +294,7 @@ typedef struct {
 
   /** Defines the type of software filtering that should be used
    *  for this receive object. */
-	CanIf_SoftwareFilterTypeType CanIfSoftwareFilterType;
+	CanIf_PrivateSoftwareFilterType CanIfSoftwareFilterType;
 
   /* Acceptance filters, 1 - Care, 0 - Don't care. */
 	uint32 CanIfCanRxPduCanIdMask;
