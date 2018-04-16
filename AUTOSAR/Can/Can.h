@@ -34,31 +34,6 @@
 #define CAN_CBK_CHECKWAKEUP_SERVICE_ID              0x0B
 
 
-#if defined(CFG_PPC)
-
-/* HOH flags */
-#define CAN_HOH_FIFO_MASK           (1UL<<0)
-
-
-/* Controller flags */
-#define CAN_CTRL_RX_PROCESSING_INTERRUPT        (1UL<<0)
-#define CAN_CTRL_RX_PROCESSING_POLLING          0
-#define CAN_CTRL_TX_PROCESSING_INTERRUPT        (1UL<<1)
-#define CAN_CTRL_TX_PROCESSING_POLLING          0
-#define CAN_CTRL_WAKEUP_PROCESSING_INTERRUPT    (1UL<<2)
-#define CAN_CTRL_WAKEUP_PROCESSING_POLLING      0
-#define CAN_CTRL_BUSOFF_PROCESSING_INTERRUPT    (1UL<<3)
-#define CAN_CTRL_BUSOFF_PROCESSING_POLLING      0
-#define CAN_CTRL_ACTIVATION                     (1UL<<4)
-
-#define CAN_CTRL_LOOPBACK                       (1UL<<5)
-#define CAN_CTRL_FIFO                           (1UL<<6)
-
-#define CAN_CTRL_ERROR_PROCESSING_INTERRUPT    (1UL<<7)
-#define CAN_CTRL_ERROR_PROCESSING_POLLING      0
-
-#endif
-
 #include "Std_Types.h"
 #include "CanIf_Types.h"
 #include "ComStack_Types.h"

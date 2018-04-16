@@ -1,3 +1,6 @@
+#ifndef CANIF_CBK_H_
+#define CANIF_CBK_H_
+
 #include "CanIf.h"
-#include "CanTp.h"
-#include "CanTp_Cbk.h"
+
+#endif /*CANIF_CBK_H_*/
