@@ -1,5 +1,4 @@
 #include "Com.h"
-#if defined(USE_DET)
 #include "Det.h"
 #endif
 #include "Com_MemMap.h"
@@ -141,43 +140,17 @@ void Com_DeInit(void){
 	/* @req COM129 */ /* Com_DeInit shall stop all started I-PDU groups */
 	uint16 i;
 	for (i = 0; !ComConfig->ComIPdu[i].Com_EOL; i++) {
-		/* ComConfig->ComIPdu[i]->isStarted = 0; */ /* TODO: Check correct action */
+		ComConfig->ComIPdu[i].Com_EOL = 0;
 	}
 	initStatus = COM_UNINIT;
 /* TODO: Revise */
 } /*SID 0x02*/
 
 
-void Com_ReceptionDMControl(Com_IpduGroupVector ipduGroupVector){
-/* TODO: Implement */
-} /*SID 0x06*/
-
 Com_StatusType Com_GetStatus(void){ 
 	return initStatus;
 /* TODO: Revise */
 }/*SID 0x07, returns COM_INIT or COM_UNINIT*/
-
-void Com_GetVersionInfo(Std_VersionInfoType* versioninfo){
-	if(versioninfo != NULL) {
-		versioninfo->vendorID =  COM_VENDOR_ID;
-		versioninfo->moduleID = COM_MODULE_ID;
-		versioninfo->sw_major_version = COM_SW_MAJOR_VERSION;
-		versioninfo->sw_minor_version =  COM_SW_MINOR_VERSION;
-		versioninfo->sw_patch_version =  COM_SW_PATCH_VERSION;
-	}
-/* TODO: Revise */
-}/*SID 0x09, Version out*/
-	
-
-void Com_ClearIpduGroupVector(Com_IpduGroupVector ipduGroupVector){
-	if(initStatus != COM_INIT){
-		Det_ReportError(COM_CLEARIPDUGROUPVECTOR_ID, COM_E_UNINIT);
-		return;
-	}
-	memset(ipduGroupVector, 0, sizeof(Com_IpduGroupVector));
-/* TODO: Revise */
-} /*SID 0x1c*/
-
 
 
 /* Communication Services */
@@ -271,72 +244,9 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
     return E_OK;
 } /*SID 0x0a*/
 
-uint8 Com_SendDynSignal(Com_SignalIdType SignalId, const void* SignalDataPtr, uint16 Length){
-/* TODO: Implement */
-} /*SID 0x21*/
-
-uint8 Com_ReceiveSignal(Com_SignalIdType SignalId, void* SignalDataPtr){
-/* TODO: Implement */
-} /*SID 0x0b*/
-
-uint8 Com_ReceiveDynSignal(Com_SignalIdType SignalId, void* SignalDataPtr, uint16* Length){
-/* TODO: Implement */
-} /*SID 0x22*/
-
-void Com_UpdateShadowSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
-/* TODO: Implement */
-} /*SID 0x0c*/
-
-uint8 Com_SendSignalGroup(Com_SignalGroupIdType SignalGroupId){
-/* TODO: Implement */
-} /*SID 0x0d */
-
-uint8 Com_ReceiveSignalGroup(Com_SignalGroupIdType SignalGroupId){
-/* TODO: Implement */
-} /*SID 0x0e*/
-
-void Com_ReceiveShadowSignal(Com_SignalIdType SignalId, void* SignalDataPtr){
-/* TODO: Implement */
-} /*SID 0x0f*/
-
-uint8 Com_SendSignalGroupArray(Com_SignalGroupIdType SignalGroupId, const uint8* SignalGroupArrayPtr){
-/* TODO: Implement */
-} /*SID 0x23*/
-
-uint8 Com_ReceiveSignalGroupArray(Com_SignalGroupIdType SignalGroupId, uint8* SignalGroupArrayPtr){
-/* TODO: Implement */
-} /*SID 0x24*/
-
-uint8 Com_InvalidateSignal(Com_SignalIdType SignalId){
-/* TODO: Implement */
-} /*SID 0x10*/
-
-void Com_InvalidateShadowSignal(Com_SignalIdType SignalId){
-/* TODO: Implement */
-} /*SID 0x16*/
-
-uint8 Com_InvalidateSignalGroup(Com_SignalGroupIdType SignalGroupId){
-/* TODO: Implement */
-} /*SID 0x1b*/
-
-Std_ReturnType Com_TriggerIPDUSend(PduIdType PduId){
-/* TODO: Implement */
-} /*SID 0x17*/
-
-Std_ReturnType Com_TriggerIPDUSendWithMetaData(PduIdType PduId, uint8* MetaData){
-/* TODO: Implement */
-} /*SID 0x28*/
-
-void Com_SwitchIpduTxMode(PduIdType PduId, boolean Mode){
-/* TODO: Implement */
-} /*SID 0x27*/
-
 
 
 /* Callback functions and Notifications */
-Std_ReturnType Com_TriggerTransmit(PduIdType TxPduId, PduInfoType* PduInfoPtr){
-/* TODO: Implement */
-} /*SID 0x41*/
 
 void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 	if(Com_GetStatus() != COM_INIT) {
@@ -379,10 +289,6 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 	return;
 } /*SID 0x42*/
 
-void Com_TpRxIndication(PduIdType id, Std_ReturnType result){
-/* TODO: Implement */
-} /*SID 0x45*/
-
 void Com_TxConfirmation(PduIdType TxPduId){
 	/* @req COM305 */ /* IMPORTANT */
 	/* @req COM469 */ /* ComMinimumDelayTime of an I-PDU is configured greater than 0, COM module shall (re-)load the already running minimum
@@ -423,34 +329,8 @@ void Com_TxConfirmation(PduIdType TxPduId){
 	}
 } /*SID 0x40*/
 
-void Com_TpTxConfirmation(PduIdType id, Std_ReturnType result){
-/* TODO: Implement */
-} /*SID 0x48*/
-
-BufReq_ReturnType Com_StartOfReception(PduIdType id, const PduInfoType* info,PduLengthType TpSduLength, PduLengthType* bufferSizePtr){
-/* TODO: Implement */
-} /*SID 0x46*/
-
-BufReq_ReturnType Com_CopyRxData(PduIdType id, const PduInfoType* info, PduLengthType* bufferSizePtr){
-/* TODO: Implement */
-} /*SID 0x44*/
-
-BufReq_ReturnType Com_CopyRxData(PduIdType PduId, const PduInfoType* PduInfoPtr, PduLengthType* RxBufferSizePtr){
-/* TODO: Implement */
-}
-BufReq_ReturnType Com_CopyTxData(PduIdType id, const PduInfoType* info, RetryInfoType* retry, PduLengthType* availableDataPtr){
-/* TODO: Implement */
-} /*SID 0x43*/
-
 
 /* Scheduled Functions*/
-void Com_MainFunctionRx(void){
-/* TODO: Implement */
-} /*SID 0x18*/
-
-void Com_MainFunctionTx(void){
-/* TODO: Implement */
-} /*SID 0x19*/
 
 void Com_MainFunctionRouteSignals(void){
 /* TODO: Implement */

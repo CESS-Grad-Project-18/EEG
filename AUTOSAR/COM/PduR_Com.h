@@ -1,4 +1,8 @@
-#ifndef PDUR_COM_H_
-#define PDUR_COM_H_
+#ifndef PDUR_COM_H
+#define PDUR_COM_H
 
-#elif
+#include "../PduR/PduR.h"
+
+Std_ReturnType PduR_ComTransmit(PduIdType ComTxPduId, const PduInfoType *PduInfoPtr);
+
+#endif /* PDUR_COM_H */

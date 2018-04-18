@@ -7,11 +7,10 @@
 #include "Dem.h"
 #endif
 #include "PduR.h"
-#include "PduR_Com.h"
-#include "PduR_Dcm.h"
-#include "PduR_CanIf.h"
-#include "PduR_CanTp.h"
-#include "PduR_Ipdum.h"
+#include "../COM/Com.h"
+#include "../CanIf/CanIf.h"
+#include "../COM/PduR_Com.h"
+#include "../CanIf/PduR_CanIf.h"
 
 /*      void Det_ReportError(ModuleId, ApiId, ErrorId) */
 
@@ -41,10 +40,6 @@ Std_ReturnType PduR_RouteTransmit(const PduRDestPdu_type *destination, const Pdu
 PduR_StateType PduRState = PDUR_UNINIT;
 
 
-#if PDUR_ZERO_COST_OPERATION == STD_OFF
-
-
-
 const PduR_PBConfigType * PduRConfig;
 
 
@@ -69,16 +64,6 @@ void PduR_Init (const PduR_PBConfigType* ConfigPtr) {
 
 }
 
-
-#if PDUR_VERSION_INFO_API == STD_ON
-void PduR_GetVersionInfo (Std_VersionInfoType* versionInfo){
-	versionInfo->moduleID = (uint16)MODULE_ID_PDUR;
-	versionInfo->vendorID = (uint16)1;
-
-	/* TODO: Vendor version numbers check */
-}
-#endif
-
 uint32 PduR_GetConfigurationId (void) {
 	return PduRConfig->PduRConfigurationId;
 }
@@ -93,5 +78,3 @@ Std_ReturnType PduR_ComTransmit(PduIdType ComTxPduId, const PduInfoType *PduInfo
 	}
 	return retVal;
 }
-
-#endif

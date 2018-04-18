@@ -1,7 +1,8 @@
-#ifndef CANIF_TYPES_H_
-#define CANIF_TYPES_H_
+#ifndef CANIF_TYPES_H
+#define CANIF_TYPES_H
 
 #include "ComStack_Types.h"
+#include "../Can/Can_GeneralTypes.h"
 
 
 #define CANIF_E_PARAM_CANID 			10
@@ -456,4 +457,4 @@ typedef struct{
 
 } CanIf_PublicCfgType;
 
-#endif /*CANIF_TYPES_H_*/
+#endif /*CANIF_TYPES_H*/

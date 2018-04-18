@@ -23,10 +23,6 @@
 
 #include "PduR_Cfg.h"
 #include "PduR_Types.h"
-#include "PduR_PbCfg.h"
-
-#include "PduR_Com.h"
-#include "PduR_CanIf.h"
 
 
 extern const PduR_PBConfigType *PduRConfig;

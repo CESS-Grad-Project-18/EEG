@@ -1,11 +1,19 @@
 #ifndef STD_TYPES_H
 #define STD_TYPES_H
 
-
 #ifndef 	NULL
 #define	NULL	0
 #endif
 
+typedef int 	             boolean;
+typedef signed char  	     sint8;
+typedef unsigned char 	     uint8;
+typedef signed short int 	 sint16;
+typedef unsigned short int  uint16;
+typedef signed int 	         sint32;
+typedef unsigned int 	     uint32;
+typedef long long 	         sint64;
+typedef unsigned long long 	 uint64;
 
 typedef struct {
 	/* Recheck */
@@ -21,30 +29,6 @@ typedef struct {
 	uint8 ar_minor_version;    /* Autosar spec. numbers */
 	uint8 ar_patch_version;    /* Autosar spec. numbers */
 } Std_VersionInfoType;
-
-
-#define STD_GET_VERSION (_major,_minor,_patch) (_major * 10000 + _minor * 100 + _patch)
-
-/* Create Std_VersionInfoType */
-
-#define STD_GET_VERSION_INFO(_vi,_module) \
-	if(_vi != NULL) {\
-		((_vi)->vendorID =  _module ## _VENDOR_ID);\
-		((_vi)->moduleID = _module ## _MODULE_ID);\
-		((_vi)->sw_major_version = _module ## _SW_MAJOR_VERSION);\
-		((_vi)->sw_minor_version =  _module ## _SW_MINOR_VERSION);\
-		((_vi)->sw_patch_version =  _module ## _SW_PATCH_VERSION);\
-		((_vi)->ar_major_version =  _module ## _AR_MAJOR_VERSION);\
-		((_vi)->ar_minor_version =  _module ## _AR_MINOR_VERSION);\
-		((_vi)->ar_patch_version =  _module ## _AR_PATCH_VERSION);\
-	}
-
-#ifndef MIN
-#define MIN(_x,_y) (((_x) < (_y)) ? (_x) : (_y))
-#endif
-#ifndef MAX
-#define MAX(_x,_y) (((_x) > (_y)) ? (_x) : (_y))
-#endif
 
 
 typedef uint8 Std_ReturnType;
@@ -63,15 +47,4 @@ typedef uint8 Std_ReturnType;
 #define E_COMPARE_KEY_FAILED	(Std_ReturnType)11
 #define E_FORCE_RCRRP			(Std_ReturnType)12
 
-#define STD_HIGH		0x01
-#define STD_LOW			0x00
-
-#define STD_ACTIVE		0x01
-#define STD_IDLE		0x00
-
-#define STD_ON			0x01
-#define STD_OFF			0x00
-
-
 #endif
-/** @} */

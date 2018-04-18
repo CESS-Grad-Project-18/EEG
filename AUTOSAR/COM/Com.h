@@ -1,5 +1,5 @@
-#ifndef COM_H_
-#define COM_H_
+#ifndef COM_H
+#define COM_H
 
 #include "Com_Cfg.h"
 #include "ComStack_Types.h"
@@ -9,11 +9,6 @@
 #define COM_SW_MINOR_VERSION   2
 #define COM_SW_PATCH_VERSION   0
 
-#ifndef COM_TYPES_H_
-#define COM_TYPES_H_
-
-
-#include "ComStack_Types.h"
 
 #define Com_SignalTypeToSize(type, len) \
 	(type == UINT8   ? sizeof(uint8) : \
@@ -22,7 +17,7 @@
 	type == UINT8_N  ? sizeof(uint8) * len : \
 	type == SINT8   ? sizeof(sint8) : \
 	type == SINT16  ? sizeof(sint16) : \
-	type == SINT32 ? sizeof(sint32) : sizeof(boolean)) \
+	type == SINT32 ? sizeof(sint32) : sizeof(boolean))
 
 typedef uint16 Com_BitPositionType;
 
@@ -240,9 +235,7 @@ typedef struct {
 
 /* Startup and Control Services*/
 void Com_Init(const Com_ConfigType * config); /*SID 0x01*/
-void Com_DeInit(void); /*SID 0x02*/
-void Com_IpduGroupControl(Com_IpduGroupVector ipduGroupVector, boolean initialize); /*SID 0x03*/
-void Com_ReceptionDMControl(Com_IpduGroupVector ipduGroupVector); /*SID 0x06*/
+void Com_DeInit(void);
 Com_StatusType Com_GetStatus(void); /*SID 0x07, returns COM_INIT or COM_UNINIT*/
 void Com_GetVersionInfo(Std_VersionInfoType* versioninfo) /*SID 0x09, Version out*/
 void Com_ClearIpduGroupVector(Com_IpduGroupVector ipduGroupVector); /*SID 0x1c*/
@@ -252,12 +245,7 @@ void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType i
 
 /* Communication Services */
 uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr); /*SID 0x0a*/
-uint8 Com_SendDynSignal(Com_SignalIdType SignalId, const void* SignalDataPtr, uint16 Length); /*SID 0x21*/
 uint8 Com_ReceiveSignal(Com_SignalIdType SignalId, void* SignalDataPtr); /*SID 0x0b*/
-uint8 Com_ReceiveDynSignal(Com_SignalIdType SignalId, void* SignalDataPtr, uint16* Length); /*SID 0x22*/
-void Com_UpdateShadowSignal(Com_SignalIdType SignalId, const void* SignalDataPtr); /*SID 0x0c*/
-uint8 Com_SendSignalGroup(Com_SignalGroupIdType SignalGroupId); /*SID 0x0d */
-uint8 Com_ReceiveSignalGroup(Com_SignalGroupIdType SignalGroupId); /*SID 0x0e*/
 void Com_ReceiveShadowSignal(Com_SignalIdType SignalId, void* SignalDataPtr); /*SID 0x0f*/
 uint8 Com_SendSignalGroupArray(Com_SignalGroupIdType SignalGroupId, const uint8* SignalGroupArrayPtr); /*SID 0x23*/
 uint8 Com_ReceiveSignalGroupArray(Com_SignalGroupIdType SignalGroupId, uint8* SignalGroupArrayPtr); /*SID 0x24*/

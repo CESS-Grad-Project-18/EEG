@@ -1,5 +1,5 @@
-#ifndef COMSTACK_TYPES_H_
-#define COMSTACK_TYPES_H_
+#ifndef COMSTACK_TYPES_H
+#define COMSTACK_TYPES_H
 
 #define ECUC_SW_MAJOR_VERSION   1
 #define ECUC_SW_MINOR_VERSION   0
@@ -34,8 +34,6 @@ typedef enum {
 	BUFREQ_OVFL
 } BufReq_ReturnType;
 
-// 0x00--0x1e General return types
-// 0x1f--0x3c Error notif, CAN
 
 typedef uint8 NotifResultType;
 
@@ -59,4 +57,4 @@ typedef uint8 BusTrcvErrorType;
 
 typedef uint8 NetworkHandleType;
 
-#endif /*COMSTACK_TYPES_H_*/
+#endif /*COMSTACK_TYPES_H*/

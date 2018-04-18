@@ -1,14 +1,5 @@
-#ifndef CANIF_H_
-#define CANIF_H_
-#include "Modules.h"
-
-#if defined(USE_PDUR)
-#include "PduR.h"
-#endif
-
-#if defined(USE_COM)
-#include "Com.h"
-#endif
+#ifndef CANIF_H
+#define CANIF_H
 
 #define CANIF_VENDOR_ID          1
 #define CANIF_MODULE_ID          2
@@ -20,11 +11,7 @@
 #define CANIF_SW_MINOR_VERSION   3
 #define CANIF_SW_PATCH_VERSION   0
 
-#if defined(USE_DET)
-#include "Det.h"
-#endif
 #include "CanIf_Types.h"
-#include "CanIf_SpecialPdus.h"
 #include "CanIf_Cfg.h"
 
 
@@ -54,55 +41,17 @@
 #define CANIF_SETWAKEUPEVENT_ID       0x40
 
 void CanIf_Init(const CanIf_ConfigType *ConfigPtr);
+Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId, const PduInfoType *PduInfoPtr);
+void CanIf_TxConfirmation(PduIdType canTxPduId);
+void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr);
+
 
 void CanIf_InitController(uint8  Controller, uint8  ConfigurationIndex);
-
 Std_ReturnType CanIf_SetControllerMode(uint8 Controller, CanIf_ControllerModeType ControllerMode);
-
 Std_ReturnType CanIf_GetControllerMode(uint8 Controller, CanIf_ControllerModeType *ControllerModePtr);
-
-Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId, const PduInfoType *PduInfoPtr);
-
-#if ( CANIF_READRXPDU_DATA_API == STD_ON )
-Std_ReturnType CanIf_ReadRxPduData(PduIdType CanRxPduId,
-		PduInfoType *PduInfoPtr);
-#endif
-
-#if ( CANIF_READTXPDU_NOTIFY_STATUS_API == STD_ON )
-CanIf_NotifStatusType CanIf_ReadTxNotifStatus(PduIdType CanTxPduId);
-#endif
-
-#if ( CANIF_READTXPDU_NOTIFY_STATUS_API == STD_ON )
-CanIf_NotifStatusType CanIf_ReadRxNotifStatus(PduIdType CanRxPduId);
-#endif
-
 Std_ReturnType CanIf_SetPduMode( uint8 Controller, CanIf_ChannelSetModeType PduModeRequest );
 Std_ReturnType CanIf_GetPduMode( uint8 Controller, CanIf_ChannelGetModeType *PduModePtr );
-
-#if ( CANIF_ARC_RUNTIME_PDU_CONFIGURATION == STD_ON )
-void CanIf_SetDynamicTxId( PduIdType CanTxPduId, Can_IdType CanId );
 CanIf_TxPduConfigType * CanIf_FindTxPduEntry(PduIdType id);
 CanIf_RxPduConfigType * CanIf_FindRxPduEntry(PduIdType id);
-const CanIf_HrhConfigType* CanIf_Arc_GetReceiveHandler(CanIf_Arc_ChannelIdType Channel);
-const CanIf_HthConfigType* CanIf_Arc_GetTransmitHandler(CanIf_Arc_ChannelIdType Channel);
-#endif
 
-#if ( CANIF_TRANSCEIVER_API == STD_ON )
-Std_ReturnType CanIf_SetTransceiverMode( uint8 Transceiver, CanIf_TransceiverModeType TransceiverMode );
-Std_ReturnType CanIf_GetTransceiverMode( uint8 Transceiver, CanIf_TransceiverModeType *TransceiverModePtr );
-Std_ReturnType CanIf_GetTrcvWakeupReason( uint8 Transceiver, CanIf_TrcvWakeupReasonType *TrcvWuReasonPtr );
-Std_ReturnType CanIf_SetTransceiverWakeupMode( uint8 Transceiver, CanIf_TrcvWakeupModeType *TrcvWakeupMode );
-#endif
-
-#if ( CANIF_WAKEUP_EVENT_API == STD_ON )
-Std_ReturnType CanIf_CheckWakeup( EcuM_WakeupSourceType WakeupSource );
-Std_ReturnType CanIf_CheckValidation( EcuM_WakeupSourceType WakeupSource );
-#endif
-
-#if ( CANIF_VERSION_INFO_API == STD_ON )
-#define CanIf_GetVersionInfo(_vi) STD_GET_VERSION_INFO(_vi,CANIF)
-#endif
-
-uint8 CanIf_Arc_GetChannelDefaultConfIndex(CanIf_Arc_ChannelIdType Channel);
-
-#endif /*CANIF_H_*/
+#endif /*CANIF_H*/

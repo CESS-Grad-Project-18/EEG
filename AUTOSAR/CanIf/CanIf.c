@@ -1,9 +1,5 @@
-#if defined(USE_DET)
 #include "Det.h"
-#endif
 #include "CanIf.h"
-
-#include "Can.h"
 #include "CanIf_Cbk.h"
 #include <string.h>
 
@@ -71,17 +67,8 @@ static CanIf_ChannelIdType CanIf_FindHrhChannel(Can_HRHType hrh){
 }
 
 
-
-
-//-------------------------------------------------------------------
-/*
- * Controller :: CanIf_ChannelIdType (CanIf-specific id to abstract from Can driver/controllers)
- * ConfigurationIndex :: CanIf_ConfigurationIndexType
- */
-
 /* Figure 7.7 CanIf State machine*/
 void CanIf_InitController(uint8 Controller, uint8 ConfigurationIndex){
-  // We call this a CanIf channel. Hopefully makes it easier to follow.
   CanIf_ChannelIdType channel = (CanIf_ChannelIdType) Controller;
   CanIf_ControllerModeType mode;
 
@@ -145,7 +132,7 @@ void CanIf_InitController(uint8 Controller, uint8 ConfigurationIndex){
 }
 
 void CanIf_PreInit_InitController(uint8 Controller, uint8 ConfigurationIndex){
-	// We call this a CanIf channel. Hopefully makes it easier to follow.
+
 	CanIf_ChannelIdType channel = (CanIf_ChannelIdType) Controller;
 
 	if(channel > CANIF_CHANNEL_CNT){
@@ -174,8 +161,6 @@ void CanIf_PreInit_InitController(uint8 Controller, uint8 ConfigurationIndex){
 
 	Can_InitController(canControllerId, canConfig);
 }
-
-//-------------------------------------------------------------------
 
 Std_ReturnType CanIf_SetControllerMode(uint8 Controller, CanIf_ControllerModeType ControllerMode){
   CanIf_ChannelIdType channel = (CanIf_ChannelIdType) Controller;
@@ -277,7 +262,7 @@ Std_ReturnType CanIf_GetControllerMode(uint8 Controller, CanIf_ControllerModeTyp
   }
   if(channel > CANIF_CHANNEL_CNT){
       Det_ReportError(MODULE_ID_CANIF, 0, CANIF_CONTROLLER_MODE_ID, CANIF_E_PARAM_CONTROLLER);
-      return E_NOT_OKl
+      return E_NOT_OK;
   }
   if(ControllerModePtr == NULL){
       Det_ReportError(MODULE_ID_CANIF, 0, CANIF_CONTROLLER_MODE_ID, CANIF_E_PARAM_POINTER);
@@ -349,9 +334,9 @@ Std_ReturnType CanIf_Transmit(PduIdType CanIfTxSduId, const PduInfoType *CanIfTx
     return E_NOT_OK;
   }
 
-  canPdu.ID = txEntry->CanIfCanTxPduIdCanId;
-  canPdu.Length = CanIfTxInfoPtr->SduLength;
-  canPdu.Sdu = CanIfTxInfoPtr->SduDataPtr;
+  canPdu.id = txEntry->CanIfCanTxPduIdCanId;
+  canPdu.length = CanIfTxInfoPtr->SduLength;
+  canPdu.sdu = CanIfTxInfoPtr->SduDataPtr;
   canPdu.swPduHandle = CanIfTxSduId;
 
   Can_ReturnType rVal = Can_Write(txEntry->CanIfCanTxPduHthRef->CanIfHthIdSymRef, &canPdu);

@@ -1,7 +1,7 @@
 #ifndef PDUR_TYPES_H
 #define PDUR_TYPES_H
 
-#include "ComStack_Types.h"
+#include "../COM/ComStack_Types.h"
 
 /* @req PDUR324 */
 /* PduR_StateType defines the states of which the PDU router can be in */
