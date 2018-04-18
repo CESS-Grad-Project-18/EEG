@@ -1,10 +1,10 @@
 #include "Com.h"
 
 /* Notifications */
-const ComNotificationCalloutType ComNotificationCallouts [] = { NULL };
+const ComNotificationCallout_type ComNotificationCallouts [] = { NULL };
 
 /* RX Callouts */
-const ComRxIPduCalloutType ComRxIPduCallouts[] = { NULL };
+const ComRxIPduCallout_type ComRxIPduCallouts[] = { NULL };
 
 /* TX Callouts */
-const ComTxIPduCalloutType ComTxIPduCallouts[] = { NULL };
+const ComTxIPduCallout_type ComTxIPduCallouts[] = { NULL };

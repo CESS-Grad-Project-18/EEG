@@ -8,7 +8,6 @@ extern const Com_ConfigType ComConfiguration;
 /* COM IPDU ID */
 #define COM_PDU_ID_EMOTIONPDU                     0
 #define COM_PDU_ID_SLEEPPDU                       1
-#define COM_NO_FUNCTION_CALLOUT                   NULL
 
 
 #define COM_SIGNAL_ID_EMOTIONSIGNAL               0

@@ -8,6 +8,8 @@
 #define COM_SW_MAJOR_VERSION   1
 #define COM_SW_MINOR_VERSION   2
 #define COM_SW_PATCH_VERSION   0
+#define NO_PDU_REFERENCE NULL
+#define COM_NO_FUNCTION_CALLOUT NULL
 
 
 #define Com_SignalTypeToSize(type, len) \
@@ -20,6 +22,19 @@
 	type == SINT32 ? sizeof(sint32) : sizeof(boolean))
 
 typedef uint16 Com_BitPositionType;
+
+/* @req COM346 */
+typedef boolean (*ComRxIPduCallout_type)(PduIdType PduId, const uint8 *IPduData);
+
+/* @req COM700 */
+typedef boolean (*ComTxIPduCallout_type)(PduIdType PduId, const uint8 *IPduData);
+
+/* @req COM491 COM554 COM555 COM556*/
+typedef void(*ComNotificationCallout_type)(void);
+
+extern const ComRxIPduCallout_type ComRxIPduCallouts[];
+extern const ComTxIPduCallout_type ComTxIPduCallouts[];
+extern const ComNotificationCallout_type ComNotificationCallouts[];
 
 typedef enum{
 	COM_UNINIT,

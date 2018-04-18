@@ -106,7 +106,7 @@ void Com_Init(const Com_ConfigType *config){
 			}
 				/* Initialize signal data. */
 				/* @req COM098 */
-				Com_WriteToPDU((const Com_SignalIdType) Com_GetSignal(Signal->ComHandleId), Signal->ComSignalInitValue, &dataChanged);
+				Com_WriteToPDU(Signal->ComHandleId, Signal->ComSignalInitValue, &dataChanged);
 			}
 		if (IPdu->ComIPduDirection == RECEIVE && IPdu->ComIPduSignalProcessing == DEFERRED) {
 			/* Copy the initialized I-PDU to deferred buffer */
@@ -122,11 +122,11 @@ void Com_Init(const Com_ConfigType *config){
 				/* DeadlineCounter = firstTimeout; */
 			}
 		}
+	}
 	for (i = 0; i < ComConfig->ComNumOfIPDUs; i++) {
 		Com_BufferPduState[i].index = 0;
 		Com_BufferPduState[i].isLocked = FALSE;
 	}
-
 	/* Check if an error has occurred. */
 	if (err) {
 		/* */
@@ -185,9 +185,9 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
         return COM_BUSY;
     }
 
-    imask_t irq_state;
+    //imask_t irq_state;
 
-    Irq_Save(irq_state);
+    //Irq_Save(irq_state);
     /* @req COM624 */
     /*Com_SendSignal shall update the signal object identifed by SignalId with the signal reference by the SignalDataPtr param */
     Com_WriteToPDU(Signal->ComHandleId, SignalDataPtr, &dataChanged); /* Helper function*/
@@ -244,7 +244,7 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
     }else{
         return COM_SERVICE_NOT_AVAILABLE;
     }
-    Irq_Restore(irq_state);
+    //Irq_Restore(irq_state);
     return E_OK;
 } /*SID 0x0a*/
 
@@ -262,8 +262,8 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 		return;
 	}
 	const ComIPdu_type *IPdu = Com_GetIPDU(RxPduId);
-	imask_t state;
-	Irq_Save(state);
+	//imask_t state;
+	//Irq_Save(state);
 	/* @req COM649 */ /* Interrups disabled */
 	/* If I-PDU is stopped */
 	/* @req COM684 */
@@ -277,11 +277,13 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 	/* @req COM381 */ /* COM shall not support that other AUTOSAR COM module’s APIs than Com_TriggerIPDUSend, Com_TriggerIPDUSendWithMetaData called out of an I-PDU callout */
 	/* ComRetryFailedTransmitRequests */
 	/* @req COM780 */ /* Retry of failed transmission requests is enabled */
-	if ((IPdu->ComIPduCallout != COM_NO_FUNCTION_CALLOUT) && (ComIPduCallouts[IPdu->ComIPduCallout] != NULL)) {
-		if (!ComRxIPduCallouts[IPdu->ComIPduCallout](RxPduId, PduInfoPtr->SduDataPtr)) {
+	/*if ((IPdu->ComIPduCallout != COM_NO_FUNCTION_CALLOUT) && (ComRxIPduCallouts[IPdu->ComIPduCallout] != NULL)) {
+		if (!ComRxIPduCallouts[IPdu->ComIPduCallout](RxPduId, PduInfoPtr->SduDataPtr)) { */
+    if ((IPdu->ComIPduCallout != COM_NO_FUNCTION_CALLOUT) && (ComRxIPduCallouts[0] != NULL)) {
+        if (!ComRxIPduCallouts[0](RxPduId, PduInfoPtr->SduDataPtr)) {
 			/* Det_ReportError(); */
 			/* !req COM738 */ /* COM module shall restart the reception deadline monitoring timer also in case of receiving an invalid value */
-			Irq_Restore(state);
+			//Irq_Restore(state);
 			return;
 		}
 	}
@@ -289,7 +291,7 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 	/* Copy IPDU data */
 	memcpy(IPdu->ComIPduDataPtr, PduInfoPtr->SduDataPtr, IPdu->ComIPduSize);
 	Com_RxSignalProcess(IPdu);
-	Irq_Restore(state);
+	//Irq_Restore(state);
 	return;
 } /*SID 0x42*/
 
@@ -403,10 +405,10 @@ void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr,
 }
 
 boolean Com_BufferLocked(PduIdType id) {
-	imask_t state;
-	Irq_Save(state);
+	//imask_t state;
+	//Irq_Save(state);
 	boolean locked = Com_BufferState[id].isLocked;
-	Irq_Restore(state);
+	//Irq_Restore(state);
 	if (locked) {
 		return TRUE;
 	} else {
@@ -470,9 +472,9 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 	uint8 pduSignalMask[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	uint8 signalDataBytesArray[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	const uint8 *signalDataBytes = (const uint8 *)signalData;
-	imask_t irq_state;
+	//imask_t irq_state;
 
-	Irq_Save(irq_state);
+	//Irq_Save(irq_state);
 	if (endianness == COM_OPAQUE || signalType == UINT8_N){
 		/* @req COM472 */
 		/* COM interprets opaque data as uint8[n] and shall always map it to an n-bytes sized signal */
@@ -526,7 +528,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
             }
         }
 	}
-	Irq_Restore(irq_state);
+	//Irq_Restore(irq_state);
 }
 
 Com_BitPositionType Com_GetByteOffset(Com_BitPositionType BitNumber){

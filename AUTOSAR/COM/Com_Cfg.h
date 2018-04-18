@@ -3,7 +3,10 @@
 
 /* TODO: Revise numbers */
 #define COM_INIT_ID 1
-
+#define COM_DEINIT_ID -1
+#define COM_SENDSIGNAL_ID 2
+#define COM_RXINDICATION_ID 3
+#define COM_TXCONFIRMATION_ID 4
 #define COM_MAX_BUFFER_SIZE						150
 
 #define COM_MAX_N_IPDUS							20
@@ -18,7 +21,7 @@
 #define COM_E_TOO_MANY_IPDU						106
 #define COM_E_TOO_MANY_SIGNAL					107
 #define COM_E_PARAM_POINTER                    108
+#define COM_E_UNINIT                            111
 #define CPU_ENDIANESS							COM_BIG_ENDIAN
-
 
 #endif /*COM_CFG_H*/

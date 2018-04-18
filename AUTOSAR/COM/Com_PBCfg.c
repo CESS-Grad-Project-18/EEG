@@ -54,7 +54,17 @@ const ComSignal_type ComSignal[] = {
     }
 };
 
-    
+/* Signal References */
+static const ComSignal_type * const EmotionSignal_SignalRef[]={
+        &ComSignal[COM_SIGNAL_ID_EMOTIONSIGNAL],
+        NULL
+};
+
+static const ComSignal_type * const SleepSignal_SignalRef[]={
+        &ComSignal[COM_SIGNAL_ID_SLEEPSIGNAL],
+        NULL
+};
+
     
 /* I-PDU definitions */
 static const ComIPdu_type ComIPdu[] = {
@@ -78,7 +88,7 @@ static const ComIPdu_type ComIPdu[] = {
         },
         .ComIPduDataPtr =  EmotionSignal_IPduBuffer,
         .ComIPduDeferredDataPtr =  NULL,
-        .ComIPduSignalRef =  {&ComSignal[COM_SIGNAL_ID_EMOTIONSIGNAL]},
+        .ComIPduSignalRef =  EmotionSignal_SignalRef,
         .Com_EOL =  FALSE,
     },
 
@@ -101,7 +111,7 @@ static const ComIPdu_type ComIPdu[] = {
         },
         .ComIPduDataPtr =  SleepSignal_IPduBuffer,
         .ComIPduDeferredDataPtr =  NULL,
-        .ComIPduSignalRef =  {&ComSignal[COM_SIGNAL_ID_SLEEPSIGNAL]},
+        .ComIPduSignalRef =  SleepSignal_SignalRef,
         .Com_EOL =  FALSE,
     },
 
