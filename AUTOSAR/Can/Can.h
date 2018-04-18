@@ -1,5 +1,5 @@
-#ifndef CAN_H_
-#define CAN_H_
+#ifndef CAN_H
+#define CAN_H
 
 
 #define CAN_VENDOR_ID			5   /* TODO: Add value */
@@ -33,18 +33,10 @@
 #define CAN_MAINFUNCTION_WAKEUP_SERVICE_ID          0x0A
 #define CAN_CBK_CHECKWAKEUP_SERVICE_ID              0x0B
 
-#include "CanIf_Types.h"
+#include "../CanIf/CanIf_Types.h"
 #include "../COM/ComStack_Types.h"
 #include "Can_Cfg.h"
 #include "Can_GeneralTypes.h"
-
-
-typedef struct {
-    PduIdType   swPduHandle; /*CanIf private data , may be used by Callback */
-    uint8 length; /* Length (8 bytes max) */
-    Can_IdType 	id; /* the CAN ID, 29 or 11-bit */
-    const uint8 *sdu; /* Data pointer */
-} Can_PduType;
 
 
 /* Services affecting the complete hardware unit */
@@ -57,7 +49,7 @@ void Can_DisableControllerInterrupts(uint8 Controller); /* SID: 0x04 */
 void Can_EnableControllerInterrupts(uint8 Controller); /* SID: 0x05 */
 void Can_CheckWakeup(uint8 Controller); /* SID: 0x0B */
 
-void Can_InitController(uint8 Controller, const Can_ControllerConfigType *Config);
+void Can_InitController(uint8 Controller, const void* Config);
 
 
 /* Services affecting a Hardware Handle */
@@ -69,7 +61,5 @@ void Can_MainFunction_Read_0(void); /* SID: 0x08 */
 void Can_MainFunction_Write_1(void); /* SID: 0x01 */
 void Can_MainFunction_Read_1(void); /* SID: 0x08 */
 
-#endif
 
-
-#endif /*CAN_H_*/
+#endif /* CAN_H */

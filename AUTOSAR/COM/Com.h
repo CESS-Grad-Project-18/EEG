@@ -78,7 +78,7 @@ typedef enum {
 /* @req COM291 */
 /* reception deadline monitoring of the I-PDU using the smallest configured non zero timeout parameter */
 typedef enum {
-	NONE,
+	NONEX,
 	REPLACE
 } ComRxDataTimeoutAction_type;
 
@@ -179,6 +179,32 @@ typedef struct {
 	const ComTxMode_type ComTxModeFalse;
 } ComTxIPdu_type;
 
+
+/** Configuration structure for signals and signal groups. */
+typedef struct {
+    const Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
+    union {
+        const uint8 ComBitSize; /* @req COM158 */ /* Size of signal in bits */
+        const uint32 ComSignalLength; /* @req COM437 */ /* Size of signal in bytes for UINT8_N and UINT8_DYN */
+    };
+    const uint32 ComErrorNotification; /** Notification function for error notification. */
+    const uint32 ComFirstTimeoutFactor; /* First timeout period for deadline monitoring. */
+    const uint16 ComHandleId; /* @req COM165 */ /* Identifier for the signal. */
+    const uint32 ComNotification; /* Tx and Rx notification function. */
+    const ComRxDataTimeoutAction_type ComRxDataTimeoutAction; /* @req COM412 */ /* Action to be performed when a reception timeout occurs. */
+    const ComSignalEndianess_type ComSignalEndianess; /* Endianess of the signal's network representation. */
+    const void *ComSignalInitValue; /* Value used to initialized this signal. */
+    const Com_SignalType ComSignalType; /* Type of the signal. */
+    const uint32 ComTimeoutFactor; /* Timeout period for deadline monitoring. */
+    const uint32 ComTimeoutNotification; /* @req COM552 */ /* Timeout notification function. */
+    const ComTransferProperty_type ComTransferProperty;
+    const Com_BitPositionType ComUpdateBitPosition; /* @req COM257 */ /* Update bit's position, NULL if none */
+    const uint8 ComSignalUseUpdateBit;  /* Set when update bit is used.*/
+    const ComFilterAlgorithm_type ComFilter; /* Filter for this signal. */
+    const uint16 ComIPduHandleId; /* @req COM175 */ /*ID of the IPDU that this signal belongs to */
+    const uint8 Com_EOL; /* Marks the end of list for the signal configuration array. */
+} ComSignal_type;
+
 /* @req COM340 */
 typedef struct {
 	/** Callout function of this IPDU.
@@ -198,31 +224,6 @@ typedef struct {
 	const uint8 Com_EOL; /* Marks the end of list for this configuration array. */
 } ComIPdu_type;
 
-/** Configuration structure for signals and signal groups. */
-typedef struct {
-	const Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
-	union {
-		const uint8 ComBitSize; /* @req COM158 */ /* Size of signal in bits */
-		const uint32 ComSignalLength; /* @req COM437 */ /* Size of signal in bytes for UINT8_N and UINT8_DYN */
-	};
-	const uint32 ComErrorNotification; /** Notification function for error notification. */
-	const uint32 ComFirstTimeoutFactor; /* First timeout period for deadline monitoring. */
-	const uint16 ComHandleId; /* @req COM165 */ /* Identifier for the signal. */
-	const uint32 ComNotification; /* Tx and Rx notification function. */
-	const ComRxDataTimeoutAction_type ComRxDataTimeoutAction; /* @req COM412 */ /* Action to be performed when a reception timeout occurs. */
-	const ComSignalEndianess_type ComSignalEndianess; /* Endianess of the signal's network representation. */
-	const void *ComSignalInitValue; /* Value used to initialized this signal. */
-	const Com_SignalType ComSignalType; /* Type of the signal. */
-	const uint32 ComTimeoutFactor; /* Timeout period for deadline monitoring. */
-	const uint32 ComTimeoutNotification; /* @req COM552 */ /* Timeout notification function. */
-	const ComTransferProperty_type ComTransferProperty;
-	const Com_BitPositionType ComUpdateBitPosition; /* @req COM257 */ /* Update bit's position, NULL if none */
-	const uint8 ComSignalUseUpdateBit;  /* Set when update bit is used.*/
-	const ComFilter_type ComFilter; /* Filter for this signal. */
-	const uint16 ComIPduHandleId; /* @req COM175 */ /*ID of the IPDU that this signal belongs to */
-	const uint8 Com_EOL; /* Marks the end of list for the signal configuration array. */
-} ComSignal_type;
-
 /* @req COM825 */
 /* Top-level configuration container for COM. Exists once per configuration. */
 typedef struct {
@@ -237,25 +238,14 @@ typedef struct {
 void Com_Init(const Com_ConfigType * config); /*SID 0x01*/
 void Com_DeInit(void);
 Com_StatusType Com_GetStatus(void); /*SID 0x07, returns COM_INIT or COM_UNINIT*/
-void Com_GetVersionInfo(Std_VersionInfoType* versioninfo) /*SID 0x09, Version out*/
-void Com_ClearIpduGroupVector(Com_IpduGroupVector ipduGroupVector); /*SID 0x1c*/
-void Com_SetIpduGroup(Com_IpduGroupVector ipduGroupVector, Com_IpduGroupIdType ipduGroupId, boolean bitval); /*SID 0x1d */
+void Com_TxConfirmation(PduIdType TxPduId);
+void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr);
 
 
 
 /* Communication Services */
 uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr); /*SID 0x0a*/
 uint8 Com_ReceiveSignal(Com_SignalIdType SignalId, void* SignalDataPtr); /*SID 0x0b*/
-void Com_ReceiveShadowSignal(Com_SignalIdType SignalId, void* SignalDataPtr); /*SID 0x0f*/
-uint8 Com_SendSignalGroupArray(Com_SignalGroupIdType SignalGroupId, const uint8* SignalGroupArrayPtr); /*SID 0x23*/
-uint8 Com_ReceiveSignalGroupArray(Com_SignalGroupIdType SignalGroupId, uint8* SignalGroupArrayPtr); /*SID 0x24*/
-uint8 Com_InvalidateSignal(Com_SignalIdType SignalId); /*SID 0x10*/
-void Com_InvalidateShadowSignal(Com_SignalIdType SignalId); /*SID 0x16*/
-uint8 Com_InvalidateSignalGroup(Com_SignalGroupIdType SignalGroupId); /*SID 0x1b*/
-Std_ReturnType Com_TriggerIPDUSend(PduIdType PduId); /*SID 0x17*/
-Std_ReturnType Com_TriggerIPDUSendWithMetaData(PduIdType PduId, uint8* MetaData); /*SID 0x28*/
-void Com_SwitchIpduTxMode(PduIdType PduId, boolean Mode); /*SID 0x27*/
-
 
 /* Helper functions */
 void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr, 

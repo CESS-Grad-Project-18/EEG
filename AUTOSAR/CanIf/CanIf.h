@@ -49,9 +49,9 @@ void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr
 void CanIf_InitController(uint8  Controller, uint8  ConfigurationIndex);
 Std_ReturnType CanIf_SetControllerMode(uint8 Controller, CanIf_ControllerModeType ControllerMode);
 Std_ReturnType CanIf_GetControllerMode(uint8 Controller, CanIf_ControllerModeType *ControllerModePtr);
-Std_ReturnType CanIf_SetPduMode( uint8 Controller, CanIf_ChannelSetModeType PduModeRequest );
-Std_ReturnType CanIf_GetPduMode( uint8 Controller, CanIf_ChannelGetModeType *PduModePtr );
-CanIf_TxPduConfigType * CanIf_FindTxPduEntry(PduIdType id);
-CanIf_RxPduConfigType * CanIf_FindRxPduEntry(PduIdType id);
+Std_ReturnType CanIf_SetPduMode( uint8 Controller, CanIf_PduChannelModeType PduModeRequest);
+Std_ReturnType CanIf_GetPduMode( uint8 Controller, CanIf_PduChannelModeType *PduModePtr);
+CanIf_TxPduCfgType * CanIf_FindTxPduEntry(PduIdType id);
+CanIf_RxPduCfgType * CanIf_FindRxPduEntry(PduIdType id);
 
 #endif /*CANIF_H*/

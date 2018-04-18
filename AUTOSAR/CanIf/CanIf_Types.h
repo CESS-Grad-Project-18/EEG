@@ -1,8 +1,9 @@
 #ifndef CANIF_TYPES_H
 #define CANIF_TYPES_H
 
-#include "ComStack_Types.h"
+#include "../COM/ComStack_Types.h"
 #include "../Can/Can_GeneralTypes.h"
+#include "../Can/Can_Cfg.h"
 
 
 #define CANIF_E_PARAM_CANID 			10
@@ -101,8 +102,8 @@ typedef enum {
 
 /* @req CANIF742 */
 typedef enum{
-	UINT8,
-	UINT16
+	UINT8_PH,
+	UINT16_PH
 } CanIf_PublicHandleType;
 
 
@@ -208,14 +209,12 @@ typedef struct {
  */
 /** Definition of Hardware Object Handle. */
 typedef struct {
-  /** Reference to the CAN Driver controller config. */
-  const Can_ConfigSetType   *CanConfigSet;
 
   /** This container contains contiguration parameters for each hardware receive object. */
   const CanIf_HrhCfgType *CanIfHrhConfig;
 
   /** This container contains parameters releated to each HTH */
-  const CanIf_HthConfigType *CanIfHthConfig;
+  const CanIf_HthCfgType *CanIfHthConfig;
 
   /** End Of List. Set to TRUE if this is the last object in the list. */
   boolean CanIf_EOL;
@@ -252,7 +251,7 @@ typedef struct {
 	/** Handle, that defines the hardware object or the pool of hardware objects
 	 *  configured for transmission. The parameter refers HTH Id, to which the L-
 	 *  PDU belongs to. */
-	const CanIf_HthConfigType *CanIfCanTxPduHthRef;
+	const CanIf_HthCfgType *CanIfCanTxPduHthRef;
 
 	/** Reference to the "global" Pdu structure to allow harmonization of handle
 	 *  IDs in the COM-Stack. */
@@ -276,10 +275,6 @@ typedef struct {
 
 	/* Data length code (in bytes) of transmit CAN L-PDUs used by the CAN Driver for CAN L-PDU transmission. 0 - 8 bytes. */
 	uint8 CanIfCanRxPduIdDlc;
-
-  /* This parameter defines the type of the receive indication call-outs called to
-   *  the corresponding upper layer the used TargetRxPduId belongs to. */
-	CanIf_UserTypeType  CanIfRxUserType;
 
 	/* @req CANIF249 */
 	/* Name of target confirmation services to target upper layer (PduR). If not configured then no call-out function is provided by the upper layer for this Tx L-PDU. */
@@ -306,18 +301,12 @@ typedef struct {
 /** Container used to create channel init configurations.
  *  @see CanIf_ConfigurationIndexType
  *  @see CanIf_ChannelIdType */
-typedef struct {
+typedef struct CanIf_CtrlCfgType{
     /* Not used */
-	/* CanIf_WakeupSupportType WakeupSupport; */
+	boolean CanIfCtrlWakeUpSupport;
+	uint8 CanIfCtrlId;
+	/*Can controller add*/
 
-	/** CanIf-specific id of the controller */
-	CanIf_ChannelIdType CanIfControllerIdRef;
-
-	/* Needed? */
-	/* const char CanIfDriverNameRef[8]; */
-
-	/** Reference to */
-	const CanIf_CtrlCfgType *CanIfInitControllerRef;
 } CanIf_CtrlCfgType;
 
 //-------------------------------------------------------------------

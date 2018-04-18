@@ -16,14 +16,8 @@ typedef struct {
 } PduR_LConfigType;
 
 typedef struct {
-	/* post-build-time data configuration of PDU router, implemented in PduR_PBcfg.c */
-	uint8 PduRConfigurationId;
-	uint8 NRoutingPaths;
-
-	/* The routing table of this PDU router configuration. */
-	const PduRRoutingPath_type * const*RoutingPaths;
-	PduRTpBufferInfo_type *TpBuffers;
-	PduRTpBufferInfo_type **TpRouteBuffers;
-
+	uint16 PduR_PBConfigIdType;
+	uint16 PduR_RoutingPathGroupIdType;
+	PduR_StateType PduR_StateType;
 } PduR_PBConfigType;
 #endif

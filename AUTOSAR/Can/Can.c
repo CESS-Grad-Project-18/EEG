@@ -184,10 +184,10 @@ void Can_MainFunction_Read_1(void) {
 
 
 void Can_Init(const Can_ConfigType *Config) {
-    // Do initial configuration of layer here
+    /* Do initial configuration of layer here */
 }
 
-void Can_InitController(uint8 controller, const Can_ControllerConfigType *config) {
+void Can_InitController(uint8 controller, const void* config) {
     uint8 i;
     switch (controller) {
         case 0: /* Used for transmission */

@@ -26,9 +26,9 @@ typedef struct {
 } Can_ConfigType ;
 
 typedef struct {	
-	Can_IdType CanId /* Standard/Extended CAN ID of CAN LPDU */
-	Can_HwHandleType Hoh /* ID of the corresponding HardwareObject Range */
-	uint8 ControllerId /* ControllerId provided by CanIf clearly identify the corresponding controller */
+	Can_IdType CanId; /* Standard/Extended CAN ID of CAN LPDU */
+	Can_HwHandleType Hoh; /* ID of the corresponding HardwareObject Range */
+	uint8 ControllerId; /* ControllerId provided by CanIf clearly identify the corresponding controller */
 } Can_HwType;
 
 typedef struct {	
