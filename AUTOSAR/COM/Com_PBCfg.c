@@ -1,18 +1,10 @@
 #include "Com_PbCfg.h"
-#if defined(USE_PDUR)
-#include "PduR.h"
-#endif
+#include "../PduR/PduR.h"
 
-/* Signal initial values. */
-static const uint8 ACTemp_InitValue = 0;
-static const uint8 Led1Sts_InitValue = 0;
-static const uint8 Led2Sts_InitValue = 0;
-static const uint8 Led3Sts_InitValue = 0;
-static const uint8 MotorTemp_InitValue = 0;
-static const uint8 MotorSpeed_InitValue = 0;
-
-
-
+const uint8 Com_SignalInitValue_EmotionSignal[1] = {0x0};
+const uint8 Com_SignalInitValue_SleepSignal[1] = {0x0};
+static uint8 SleepSignal_IPduBuffer[1];
+static uint8 EmotionSignal_IPduBuffer[1];
 /* I-PDU signal lists. */
 const ComSignal_type ComSignal[] = {
 
@@ -30,11 +22,11 @@ const ComSignal_type ComSignal[] = {
         .ComSignalUseUpdateBit      = FALSE,
         .ComSignalInitValue         = Com_SignalInitValue_EmotionSignal,
         .ComBitPosition             = 0,
-        .ComBitSize                 = 16,
+        .ComBitSize                 = 4,
         .ComSignalEndianess         = COM_BIG_ENDIAN,
         .ComSignalType              = UINT8,
         .ComRxDataTimeoutAction     = NONE,
-        .Com_EOL                    = 0
+        .Com_EOL                    = FALSE
     },
 
     { /* Sleep Signal? */
@@ -50,41 +42,28 @@ const ComSignal_type ComSignal[] = {
         .ComSignalUseUpdateBit      = FALSE,
         .ComSignalInitValue         = Com_SignalInitValue_SleepSignal,
         .ComBitPosition             = 0,
-        .ComBitSize                 = 64,
+        .ComBitSize                 = 4,
         .ComSignalEndianess         = COM_BIG_ENDIAN,
         .ComSignalType              = UINT8,
         .ComRxDataTimeoutAction     = NONE,
-        .Com_EOL                    = 0
+        .Com_EOL                    = FALSE
     },
 
     {
-        .Com_EOL                = 1
+        .Com_EOL                = TRUE
     }
-}
-
-
-static const ComSignal_type * const TxMsgTemp_SignalRefs[] = {
-	&ComSignal[COM_SID_ACTemp],
-	NULL
 };
-static const ComSignal_type * const RxMsgAbsInfo_SignalRefs[] = {
-	&ComSignal[COM_SID_MotorSpeed],
-	&ComSignal[COM_SID_MotorTemp],
-	&ComSignal[COM_SID_Led1Stat],
-	&ComSignal[COM_SID_Led2Stat],
-	&ComSignal[COM_SID_Led3Stat],
-	NULL
-};
+
     
     
-//I-PDU definitions
+/* I-PDU definitions */
 static const ComIPdu_type ComIPdu[] = {
 
     {
         .ComIPduCallout =  NULL,
-        .IPduOutgoingId =  PDUR_ID_TxMsgTime,
+        .IPduOutgoingId =  COM_PDU_ID_EMOTIONPDU,
         .ComIPduSignalProcessing =  DEFERRED,
-        .ComIPduSize =  8,
+        .ComIPduSize =  1,
         .ComIPduDirection =  SEND,
         .ComTxIPdu ={
             .ComTxIPduMinimumDelayFactor =  1,
@@ -97,18 +76,18 @@ static const ComIPdu_type ComIPdu[] = {
                 .ComTxModeTimePeriod =   50,
             },
         },
-        .ComIPduDataPtr =  TxMsgTime_IPduBuffer,
+        .ComIPduDataPtr =  EmotionSignal_IPduBuffer,
         .ComIPduDeferredDataPtr =  NULL,
-        .ComIPduSignalRef =  TxMsgTime_SignalRefs,
+        .ComIPduSignalRef =  {&ComSignal[COM_SIGNAL_ID_EMOTIONSIGNAL]},
         .Com_EOL =  FALSE,
     },
 
     {
         .ComIPduCallout =  NULL,
-        .IPduOutgoingId =  PDUR_ID_RxMsgAbsInfo,
+        .IPduOutgoingId =  COM_PDU_ID_SLEEPPDU,
         .ComIPduSignalProcessing =  DEFERRED,
-        .ComIPduSize =  8,
-        .ComIPduDirection =  RECEIVE,
+        .ComIPduSize =  1,
+        .ComIPduDirection =  SEND,
         .ComTxIPdu ={
             .ComTxIPduMinimumDelayFactor =  1,
             .ComTxIPduUnusedAreasDefault =  0x55,
@@ -120,20 +99,20 @@ static const ComIPdu_type ComIPdu[] = {
                 .ComTxModeTimePeriod =   8,
             },
         },
-        .ComIPduDataPtr =  RxMsgAbsInfo_IPduBuffer,
+        .ComIPduDataPtr =  SleepSignal_IPduBuffer,
         .ComIPduDeferredDataPtr =  NULL,
-        .ComIPduSignalRef =  RxMsgAbsInfo_SignalRefs,
-        .Com_EOL =  0,
+        .ComIPduSignalRef =  {&ComSignal[COM_SIGNAL_ID_SLEEPSIGNAL]},
+        .Com_EOL =  FALSE,
     },
 
     {
-        .Com_EOL =  1
+        .Com_EOL =  TRUE
     }
 };
 
 const Com_ConfigType ComConfiguration = {
     .ComIPdu =  ComIPdu,
     .ComSignal =  ComSignal,
-    .ComNumOfSignals = 3,
+    .ComNumOfSignals = 2,
     .ComNumOfIPDUs = 3
 };

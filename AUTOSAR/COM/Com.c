@@ -1,10 +1,16 @@
 #include "Com.h"
-#include "Det.h"
-#endif
+//#include "Det.h"
 #include "Com_MemMap.h"
 #include "PduR_Com.h"
 #include "SchM_Com.h"
 #include "UserCbk.h"
+#include "Com_PBCfg.h"
+#include <string.h>
+
+void Det_ReportError(int a, int b);
+
+const Com_ConfigType *ComConfig;
+Com_BufferStateType Com_BufferPduState[2];
 
 #define Com_GetSignal(SignalId) (&ComConfig->ComSignal[SignalId])
 #define Com_GetPDUId(IPdu) ((PduIdType)(IPdu - (ComConfig->ComIPdu)))
@@ -12,16 +18,16 @@
 #define Com_TestBit(data, bit)	(*((uint8 *) data  + (bit / 8)) &  (uint8)(1u << (bit % 8)))
 #define Com_SetBit(data, bit)	(*((uint8 *) data    + (bit / 8)) |= (uint8)(1u << (bit % 8)))
 #define Com_ClearBit(data, bit) (*((uint8 *) data + (bit / 8)) &= (uint8)~(uint8)(1u << (bit % 8)))
+#define pduBuffer Com_GetIPDU(Signal->ComIPduHandleId)->ComIPduDataPtr
 
 
-const Com_ConfigType *ComConfig;
 ComSignalEndianess_type Com_SystemEndianness;
 static Com_StatusType initStatus = COM_UNINIT;
-static const uint32_t endian_test  = 0xDEADBEEFu;
+static const uint32 endian_test  = 0xDEADBEEFu;
 
 
 /* Startup and Control Services*/
-void Com_Init(const Com_ConfigType * config){
+void Com_Init(const Com_ConfigType *config){
 	/* @req COM328 */ /* Shall not enable inter-ECU communication */
 	/* @req COM128 */ /* Com_Init shall initialize all internal data that is not yet initialized by the start-up code*/
 	/* @req COM217 */ /* COM module shall initialize each I-PDU during execution of Com_Init, firstly byte wise with the ComTxIPduUnusedAreasDefault value 
@@ -45,8 +51,7 @@ void Com_Init(const Com_ConfigType * config){
 		Com_SystemEndianness = COM_BIG_ENDIAN;
 	}
 	else {
-		Com_SystemEndianness = COM_OPAQUE;
-		assert(0); /* Check */
+		Com_SystemEndianness = COM_OPAQUE; /* Check */
 	}
 	const ComSignal_type *Signal;
 	uint16 bufferIndex = 0, i, j;
@@ -60,8 +65,8 @@ void Com_Init(const Com_ConfigType * config){
 			break;
 		}
 		/* Set the data pointer for this PDU */
-		IPdu->ComIPduDataPtr = (void *)&Data_Buffer[bufferIndex];
-		bufferIndex += IPdu->ComIPduSize;
+		/* IPdu->ComIPduDataPtr = (void *)&Data_Buffer[bufferIndex];
+		bufferIndex += IPdu->ComIPduSize; */
 		/* If this is a TX and cyclic I-PDU, configure the first deadline. */
 		if ((IPdu->ComIPduDirection == SEND) &&
 				((IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == PERIODIC) || (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == MIXED))){
@@ -101,9 +106,8 @@ void Com_Init(const Com_ConfigType * config){
 			}
 				/* Initialize signal data. */
 				/* @req COM098 */
-				Com_WriteToPDU(Com_GetSignal(Signal->ComHandleId), Signal->ComSignalInitValue, &dataChanged);
+				Com_WriteToPDU((const Com_SignalIdType) Com_GetSignal(Signal->ComHandleId), Signal->ComSignalInitValue, &dataChanged);
 			}
-		}
 		if (IPdu->ComIPduDirection == RECEIVE && IPdu->ComIPduSignalProcessing == DEFERRED) {
 			/* Copy the initialized I-PDU to deferred buffer */
 			memcpy(IPdu->ComIPduDeferredDataPtr, IPdu->ComIPduDataPtr,IPdu->ComIPduSize);
@@ -120,7 +124,7 @@ void Com_Init(const Com_ConfigType * config){
 		}
 	for (i = 0; i < ComConfig->ComNumOfIPDUs; i++) {
 		Com_BufferPduState[i].index = 0;
-		Com_BufferPduState[i].isLocked = false;
+		Com_BufferPduState[i].isLocked = FALSE;
 	}
 
 	/* Check if an error has occurred. */
@@ -140,7 +144,7 @@ void Com_DeInit(void){
 	/* @req COM129 */ /* Com_DeInit shall stop all started I-PDU groups */
 	uint16 i;
 	for (i = 0; !ComConfig->ComIPdu[i].Com_EOL; i++) {
-		ComConfig->ComIPdu[i].Com_EOL = 0;
+		ComConfig->ComIPdu[i].Com_EOL = FALSE;
 	}
 	initStatus = COM_UNINIT;
 /* TODO: Revise */
@@ -155,7 +159,7 @@ Com_StatusType Com_GetStatus(void){
 
 /* Communication Services */
 uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
-	bool dataChanged = FALSE;
+	boolean dataChanged = FALSE;
 
 	if(Com_GetStatus() != COM_INIT){
 		Det_ReportError(COM_SENDSIGNAL_ID, COM_E_UNINIT);
@@ -273,8 +277,8 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 	/* @req COM381 */ /* COM shall not support that other AUTOSAR COM module’s APIs than Com_TriggerIPDUSend, Com_TriggerIPDUSendWithMetaData called out of an I-PDU callout */
 	/* ComRetryFailedTransmitRequests */
 	/* @req COM780 */ /* Retry of failed transmission requests is enabled */
-	if ((IPdu->ComRxIPduCallout != COM_NO_FUNCTION_CALLOUT) && (ComRxIPduCallouts[IPdu->ComRxIPduCallout] != NULL)) {
-		if (!ComRxIPduCallouts[IPdu->ComRxIPduCallout](RxPduId, PduInfoPtr->SduDataPtr)) {
+	if ((IPdu->ComIPduCallout != COM_NO_FUNCTION_CALLOUT) && (ComIPduCallouts[IPdu->ComIPduCallout] != NULL)) {
+		if (!ComRxIPduCallouts[IPdu->ComIPduCallout](RxPduId, PduInfoPtr->SduDataPtr)) {
 			/* Det_ReportError(); */
 			/* !req COM738 */ /* COM module shall restart the reception deadline monitoring timer also in case of receiving an invalid value */
 			Irq_Restore(state);
@@ -299,7 +303,7 @@ void Com_TxConfirmation(PduIdType TxPduId){
 		Det_ReportError(COM_TXCONFIRMATION_ID, COM_E_UNINIT);
 		return;
 	}
-	if( TxPduId >= ComConfig->ComNofIPdus ) {
+	if( TxPduId >= ComConfig->ComNumOfIPDUs) {
 		Det_ReportError(COM_TXCONFIRMATION_ID, COM_INVALID_PDU_ID);
 		return;
 	}
@@ -404,9 +408,9 @@ boolean Com_BufferLocked(PduIdType id) {
 	boolean locked = Com_BufferState[id].isLocked;
 	Irq_Restore(state);
 	if (locked) {
-		return true;
+		return TRUE;
 	} else {
-		return false;
+		return FALSE;
 	}
 }
 
@@ -471,7 +475,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 	Irq_Save(irq_state);
 	if (endianness == COM_OPAQUE || signalType == UINT8_N){
 		/* @req COM472 */
-		/* COM interprets opaque data as uint8[n] andshall always map it to an n-bytes sized signal */
+		/* COM interprets opaque data as uint8[n] and shall always map it to an n-bytes sized signal */
 		uint8 *pduBufferBytes = (uint8 *)pduBuffer;
 		uint8 startFromPduByte = bitPosition / 8;
 		if(memcmp(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength) != 0){

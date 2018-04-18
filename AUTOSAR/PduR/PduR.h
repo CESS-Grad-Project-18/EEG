@@ -24,6 +24,7 @@
 #include "PduR_Cfg.h"
 #include "PduR_Types.h"
 #include "../CanIf/CanIf_Types.h"
+#include "../COM/Com.h"
 
 
 extern const PduR_PBConfigType *PduRConfig;

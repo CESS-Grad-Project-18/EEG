@@ -2,6 +2,7 @@
 #define COM_CFG_H
 
 /* TODO: Revise numbers */
+#define COM_INIT_ID 1
 
 #define COM_MAX_BUFFER_SIZE						150
 
@@ -16,7 +17,7 @@
 
 #define COM_E_TOO_MANY_IPDU						106
 #define COM_E_TOO_MANY_SIGNAL					107
-
+#define COM_E_PARAM_POINTER                    108
 #define CPU_ENDIANESS							COM_BIG_ENDIAN
 
 

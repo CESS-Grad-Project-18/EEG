@@ -4,7 +4,8 @@
 #ifndef 	NULL
 #define	NULL	0
 #endif
-
+#define FALSE 0
+#define TRUE 1
 typedef int 	             boolean;
 typedef signed char  	     sint8;
 typedef unsigned char 	     uint8;
