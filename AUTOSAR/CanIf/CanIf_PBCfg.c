@@ -1,13 +1,10 @@
 
-#include "CanIf.h"
-#include "CanIf_PBCfg.h"
+#include "../CanIf/CanIf.h"
+#include "../CanIf/CanIf_PBCfg.h"
+#include "../PduR/PduR.h"
+#include "../PduR/PduR_PBCfg.h"
+#include "../COM/Com_PBCfg.h"
 
-#if defined(USE_PDUR)
-#include "PduR.h"
-#include "PduR_PbCfg.h"
-#endif
-
-#include "MemMap.h"
 
 
 
@@ -70,30 +67,28 @@ const CanIf_TxPduCfgType CanIfTxPduConfigData[] = {
 
 const CanIf_RxPduCfgType CanIfRxPduConfigData[] = {
 	{
-		.CanIfCanRxPduId 			 = PDUR_PDU_ID_EMOTION,
-    	.CanIfCanRxPduLowerCanId 	 = 137,
-    	.CanIfCanRxPduUpperCanId 	 = 137,
-    	.CanIfCanRxPduDlc 			 = 1,
-    	.CanIfReadRxPduData 		 = FALSE,
-    	.CanIfReadRxPduNotifyStatus = FALSE,
-		.CanIfCanRxPduHrhRef		 = &CanIfHrhConfigData_CanIfInitHohCfg[0],
-    	.CanIfRxPduIdCanIdType 		 = STANDARD_CAN,
-    	.CanIfUserRxIndication 		 = PDUR_CALLOUT,
-    	.CanIfCanRxPduCanIdMask 	 = 0x7FF,
-    	.PduIdRef	 				 = NULL,
+		.CanIfCanRxPduId 			 		 = PDUR_PDU_ID_EMOTION,
+    	.CanIfRxPduCanIdRangeLowerCanId 	 = 137,
+    	.CanIfRxPduCanIdRangeUpperCanId 	 = 137,
+    	.CanIfCanRxPduDlc 			 		 = 1,
+    	.CanIfReadRxPduNotifyStatus 		 = FALSE,
+		.CanIfCanRxPduHrhRef		 		 = &CanIfHrhConfigData_CanIfInitHohCfg[0],
+    	.CanIfRxPduIdCanIdType 		  		 = STANDARD_CAN,
+    	.CanIfUserRxIndication 		 		 = PDUR_CALLOUT,
+    	.CanIfCanRxPduCanIdMask 	 		 = 0x7FF,
+    	.PduIdRef	 				 		 = NULL,
 	},
 	{
-		.CanIfCanRxPduId 			 = PDUR_PDU_ID_SLEEP,
-    	.CanIfCanRxPduLowerCanId 	 = 387,
-    	.CanIfCanRxPduUpperCanId 	 = 387,
-    	.CanIfCanRxPduDlc 			 = 1,
-    	.CanIfReadRxPduData 		 = FALSE,
-    	.CanIfReadRxPduNotifyStatus = FALSE,
-		.CanIfCanRxPduHrhRef		 = &CanIfHrhConfigData_CanIfInitHohCfg[0],
-    	.CanIfRxPduIdCanIdType 		 = STANDARD_CAN,
-    	.CanIfUserRxIndication 		 = PDUR_CALLOUT,
-    	.CanIfCanRxPduCanIdMask 	 = 0x7FF,
-    	.PduIdRef	 				 = NULL,
+		.CanIfCanRxPduId 			 		 = PDUR_PDU_ID_SLEEP,
+    	.CanIfRxPduCanIdRangeUpperCanId 	 = 387,
+    	.CanIfRxPduCanIdRangeUpperCanId 	 = 387,
+    	.CanIfCanRxPduDlc 			 		 = 1,
+    	.CanIfReadRxPduNotifyStatus 		 = FALSE,
+		.CanIfCanRxPduHrhRef		 		 = &CanIfHrhConfigData_CanIfInitHohCfg[0],
+    	.CanIfRxPduIdCanIdType 		 		 = STANDARD_CAN,
+    	.CanIfUserRxIndication 		 		 = PDUR_CALLOUT,
+    	.CanIfCanRxPduCanIdMask 	 		 = 0x7FF,
+    	.PduIdRef	 				 		 = NULL,
 	},
 };
 

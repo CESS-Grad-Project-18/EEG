@@ -1,5 +1,5 @@
-#ifndef CANIF_CFG_H_
-#define CANIF_CFG_H_
+#ifndef CANIF_CFG_H
+#define CANIF_CFG_H
 
 #define CANIF_VERSION_INFO_API   STD_OFF
 #define CANIF_DEV_ERROR_DETECT   STD_OFF
@@ -18,20 +18,23 @@
 #define CANIF_READRXPDU_NOTIF_STATUS_API    STD_OFF   
 
 /* CanIf Receive */
-#define CANIF_ID_RxDiagP2P                        0
-#define CANIF_ID_RxDiagP2A                        1
-#define CANIF_ID_RxMsgAbsInfo                     2
+
 /* CanIf Transmit */
-#define CANIF_ID_TxDiagP2P                        0
-#define CANIF_ID_TxDiagP2A                        1
-#define CANIF_ID_LS_NM_TX                         2
-#define CANIF_ID_TxMsgTime                        3
-#define CANIF_ID_HS_NM_TX                         4
+#define CANIF_ID_EMOTIONSIGNAL                    0
+#define CANIF_ID_SLEEPSIGNAL                      1
 
 typedef enum {
 	CAN_CTRL_1 = 0,
-	CAN_CONTROLLER_CNT = 1
+	CAN_CONTROLLER_CNT = 2
 } Can_ControllerIdType;
+
+typedef struct {
+
+	boolean CanControllerActivation;
+	uint32 CanControllerBaseAddress;
+	uint8 CanControllerId;
+
+} Can_ControllerType;
 
 #endif
 

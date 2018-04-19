@@ -49,7 +49,7 @@ void Can_DisableControllerInterrupts(uint8 Controller); /* SID: 0x04 */
 void Can_EnableControllerInterrupts(uint8 Controller); /* SID: 0x05 */
 void Can_CheckWakeup(uint8 Controller); /* SID: 0x0B */
 
-void Can_InitController(uint8 Controller, const void* Config);
+void Can_InitController(uint8 controller, const Can_ControllerType *config);
 
 
 /* Services affecting a Hardware Handle */

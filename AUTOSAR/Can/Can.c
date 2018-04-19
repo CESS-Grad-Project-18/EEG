@@ -126,7 +126,7 @@ Can_ReturnType Can_Write(Can_HTHType hth, Can_PduType *pduInfo) {
 
 void Can_MainFunction_Write_0(void) {
     uint8 i;
-    const uint8_t TxData[] = {"Test"}; /* Transmit string*/
+    const uint8 TxData[] = {"Test"}; /* Transmit string*/
     CAN_0.MB[0].CS.B.IDE = 0; /* Use standard ID length */
     CAN_0.MB[0].ID.B.ID_STD = 0x555;/* Transmit ID is 0x555 */
     CAN_0.MB[0].CS.B.RTR = 0; /* Data frame, not remote Tx request frame */
@@ -156,13 +156,13 @@ void Can_MainFunction_Read_0(void) {
     uint8 i;
     uint32 timer;
     while (CAN_0.IFLAG1.B.BUF4TO1I != 8) {}; /* Wait for CAN 0 MB 4 flag */
-    RxCODE = CAN_0.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
-    RxID = CAN_0.MB[4].ID.B.ID_STD;
-    RxLENGTH = CAN_0.MB[4].CS.B.DLC;
-    for (i = 0; i < RxLENGTH; i++) {
-        RxDATA[i] = CAN_0.MB[4].DATA.B[i];
+    MsgCode = CAN_0.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
+    MsgId = CAN_0.MB[4].ID.B.ID_STD;
+    MsgLen = CAN_0.MB[4].CS.B.DLC;
+    for (i = 0; i < MsgData; i++) {
+        MsgData[i] = CAN_0.MB[4].DATA.B[i];
     }
-    RxTIMESTAMP = CAN_0.MB[4].CS.B.TIMESTAMP;
+    MsgTs = CAN_0.MB[4].CS.B.TIMESTAMP;
     timer = CAN_0.TIMER.R; /* Read TIMER to unlock message buffers */
     CAN_0.IFLAG1.R = 0x00000010; /* Clear CAN 1 MB 4 flag */
 }
@@ -171,13 +171,13 @@ void Can_MainFunction_Read_1(void) {
     uint8 i;
     uint32 timer;
     while (CAN_1.IFLAG1.B.BUF4TO1I != 8) {}; /* Wait for CAN 1 MB 4 flag */
-    RxCODE = CAN_1.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
-    RxID = CAN_1.MB[4].ID.B.ID_STD;
-    RxLENGTH = CAN_1.MB[4].CS.B.DLC;
-    for (i = 0; i < RxLENGTH; i++) {
-        RxDATA[i] = CAN_1.MB[4].DATA.B[i];
+    MsgCode = CAN_1.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
+    MsgId = CAN_1.MB[4].ID.B.ID_STD;
+    MsgLen = CAN_1.MB[4].CS.B.DLC;
+    for (i = 0; i < MsgLen; i++) {
+        MsgData[i] = CAN_1.MB[4].DATA.B[i];
     }
-    RxTIMESTAMP = CAN_1.MB[4].CS.B.TIMESTAMP;
+    MsgTs = CAN_1.MB[4].CS.B.TIMESTAMP;
     timer = CAN_1.TIMER.R; /* Read TIMER to unlock message buffers */
     CAN_1.IFLAG1.R = 0x00000010; /* Clear CAN 1 MB 4 flag */
 }
@@ -187,7 +187,7 @@ void Can_Init(const Can_ConfigType *Config) {
     /* Do initial configuration of layer here */
 }
 
-void Can_InitController(uint8 controller, const void* config) {
+void Can_InitController(uint8 controller, const Can_ControllerType *config) {
     uint8 i;
     switch (controller) {
         case 0: /* Used for transmission */

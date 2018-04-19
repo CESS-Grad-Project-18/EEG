@@ -37,8 +37,13 @@
 #define CANIF_RXINDICATION_ID         0x14
 #define CANIF_CANCELTXCONFIRMATION_ID 0x15
 #define CANIF_CONTROLLER_BUSOFF_ID    0x16
-
 #define CANIF_SETWAKEUPEVENT_ID       0x40
+
+#define CAN_INIT_ID 1
+#define CANIF_E_PARAM_HRH 0x120
+#define CANIF_CONTROLLER_MODE_ID 0x121
+#define CANIF_E_PARAM_CONTROLLER_MODE 0x122
+#define CANIF_CHANNEL_CONFIGURATION_CNT 2
 
 void CanIf_Init(const CanIf_ConfigType *ConfigPtr);
 Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId, const PduInfoType *PduInfoPtr);

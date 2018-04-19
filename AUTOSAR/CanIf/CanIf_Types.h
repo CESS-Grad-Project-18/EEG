@@ -10,6 +10,7 @@
 #define CANIF_E_PARAM_HOH 				12
 #define CANIF_E_PARAM_LPDU 				13
 #define CANIF_E_PARAM_CONTROLLER 		14
+#define CANIF_E_PARAM_DLC              23
 #define CANIF_E_PARAM_CONTROLLERID 		15
 #define CANIF_E_PARAM_WAKEUPSOURCE 		16
 #define CANIF_E_PARAM_TRCV 				17
@@ -127,12 +128,6 @@ typedef enum {
 } Can_HTHType;
 
 
-//-------------------------------------------------------------------
-/*
- * CanIfHrhRangeConfig container
- */
-
-/** Parameters for configuring Can id ranges. Not supported. */
 typedef struct {
 	/** Lower CAN Identifier of a receive CAN L-PDU for identifier range
 	 *  definition, in which all CAN Ids shall pass the software filtering. Range: 11
@@ -145,12 +140,7 @@ typedef struct {
 	uint32 CanIfRxPduUpperCanId;
 } CanIf_HrhRangeCfgType;
 
-
-//-------------------------------------------------------------------
-/*
- * CanIfInitHrhConfig container
- */
-/** Definition of Hardware Receive Handle */
+/* Definition of Hardware Receive Handle */
 typedef struct {
 	/** Defines the HRH type i.e, whether its a BasicCan or FullCan. If BasicCan is
 	 *  configured, software filtering is enabled. */
@@ -180,11 +170,8 @@ typedef struct {
   boolean CanIf_EOL;
 } CanIf_HrhCfgType;
 
-//-------------------------------------------------------------------
-/*
- * CanIfInitHthConfig container
- */
-/** Definition of Hardware Transmit Handle */
+
+/* Definition of Hardware Transmit Handle */
 typedef struct {
   /** Defines the HTH type i.e, whether its a BasicCan or FullCan. */
   Can_HohType CanIfHthType;
@@ -203,11 +190,8 @@ typedef struct {
   boolean CanIf_EOL;
 } CanIf_HthCfgType;
 
-//-------------------------------------------------------------------
-/*
- * CanIfInitHohConfig container
- */
-/** Definition of Hardware Object Handle. */
+
+/* Definition of Hardware Object Handle. */
 typedef struct {
 
   /** This container contains contiguration parameters for each hardware receive object. */
@@ -220,12 +204,12 @@ typedef struct {
   boolean CanIf_EOL;
 } CanIf_InitHohCfgType;
 
-//-------------------------------------------------------------------
-/*
- * CanIfTxPduConfig container
- */
+typedef struct {
+    CanIf_HthCfgType CanIfBufferHthRef;
+    uint8 CanIfBufferSize;
+} CanIf_BufferCfgType;
 
-/** Definition of Tx PDU (Protocol Data Unit). */
+/* Definition of Tx PDU (Protocol Data Unit). */
 typedef struct {
 	/** ECU wide unique, symbolic handle for transmit CAN L-PDU. The
 	 *  CanIfCanTxPduId is configurable at pre-compile and post-built time.
@@ -246,7 +230,7 @@ typedef struct {
 
 	/* @req CANIF247 */
 	/* Name of target confirmation services to target upper layer (PduR). If not configured then no call-out function is provided by the upper layer for this Tx L-PDU. */
-	void (*CanIfUserTxConfirmation)(PduIdType);   
+	void (*CanIfUserTxConfirmation)(PduIdType pduId);
 
 	/** Handle, that defines the hardware object or the pool of hardware objects
 	 *  configured for transmission. The parameter refers HTH Id, to which the L-
@@ -256,6 +240,11 @@ typedef struct {
 	/** Reference to the "global" Pdu structure to allow harmonization of handle
 	 *  IDs in the COM-Stack. */
 	void *PduIdRef;
+
+	boolean CanIfReadTxPduNotifyStatus;
+
+	CanIf_BufferCfgType CanIfTxPduBufferRef;
+
 } CanIf_TxPduCfgType;
 
 
@@ -295,6 +284,16 @@ typedef struct {
   /* Acceptance filters, 1 - Care, 0 - Don't care. */
 	uint32 CanIfCanRxPduCanIdMask;
 
+	boolean CanIfReadRxPduNotifyStatus;
+    /* @req CANIF745 */
+	uint32 CanIfRxPduCanIdRangeLowerCanId;
+
+	/* @req CANIF744 */
+	uint32 CanIfRxPduCanIdRangeUpperCanId;
+
+	/* @req CANIF599 */
+	uint8 CanIfCanRxPduDlc;
+
 } CanIf_RxPduCfgType;
 
 
@@ -306,6 +305,8 @@ typedef struct CanIf_CtrlCfgType{
 	boolean CanIfCtrlWakeUpSupport;
 	uint8 CanIfCtrlId;
 	/*Can controller add*/
+    Can_ControllerType CanIfCtrlCanCtrlRef;
+    /* uint8 CanIfCtrlCanCtrlRef; */
 
 } CanIf_CtrlCfgType;
 

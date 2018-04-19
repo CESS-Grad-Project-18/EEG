@@ -7,8 +7,6 @@
 #include "Com_PBCfg.h"
 #include <string.h>
 
-void Det_ReportError(int a, int b);
-
 const Com_ConfigType *ComConfig;
 Com_BufferStateType Com_BufferPduState[2];
 

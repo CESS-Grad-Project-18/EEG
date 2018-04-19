@@ -48,4 +48,6 @@ typedef uint8 Std_ReturnType;
 #define E_COMPARE_KEY_FAILED	(Std_ReturnType)11
 #define E_FORCE_RCRRP			(Std_ReturnType)12
 
+void Det_ReportError(int a, ...);
+
 #endif
