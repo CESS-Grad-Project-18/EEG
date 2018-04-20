@@ -9,11 +9,10 @@
 
 
 // Data for init configuration CanIfInitConfiguration
-
 const CanIf_HthCfgType CanIfHthConfigData_CanIfInitHohCfg[] =
 {
 	{ 
-    	.CanIfHthType 				= BASIC,
+    	.CanIfHthType 				= BASIC_HOH,
     	.CanIfCanControllerIdRef 	= CANIF_CanIfCtrlCfg,
     	.CanIfHthIdSymRef 			= TX, /* ? */
     	.CanIf_EOL 				    = TRUE,
@@ -23,7 +22,7 @@ const CanIf_HthCfgType CanIfHthConfigData_CanIfInitHohCfg[] =
 const CanIf_HrhCfgType CanIfHrhConfigData_CanIfInitHohCfg[] =
 {
 	{
-    	.CanIfHrhType 				 = BASIC,
+    	.CanIfHrhType 				 = BASIC_HOH,
     	.CanIfSoftwareFilterHrh 	 = TRUE,
     	.CanIfCanControllerHrhIdRef = CANIF_CanIfCtrlCfg,
     	.CanIfHrhIdSymRef 			 = RX,
@@ -41,7 +40,7 @@ const CanIf_InitHohCfgType CanIfHohConfigData[] = {
 
 const CanIf_BufferCfgType CanIfBufferCfgData[] = {
 		{
-			.CanIfBufferHthRef = CanIfHthConfigData_CanIfInitHohCfg[0],
+			.CanIfBufferHthRef = CanIfHthConfigData_CanIfInitHohCfg,
 			.CanIfBufferSize = 2
 		},
 };

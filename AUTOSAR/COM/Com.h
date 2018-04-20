@@ -178,46 +178,46 @@ typedef struct Com_BufferStateType {
 /* @req COM351 */
 /* Configuration container for Tx-mode for I-PDUs. */
 typedef struct ComTxMode_type {
-	const ComTxModeMode_type ComTxModeMode; /* Transmission mode for this IPdu. */
-	const uint8 ComTxModeNumberOfRepetitions; /* @req COM281 */ /* Number of times the I-PDU will be sent in each I-PDU cycle. Set to 0 for DIRECT transmission mode and >0 for DIRECT/N-times mode. */
-	const uint32 ComTxModeRepetitionPeriod; /* @req COM282 */ /* Defines the period of the transmissions in DIRECT/N-times and MIXED transmission modes. */
-	const uint32 ComTxModeTimeOffset; /* @req COM180 */ /* Time before first transmission of this IPDU. (i.e. between the ipdu group start and this IPDU is sent for the first time. */
-	const uint32 ComTxModeTimePeriod; /* @req COM178 */ /* Period of cyclic transmission for PERIODIC or MIXED. */
+	ComTxModeMode_type ComTxModeMode; /* Transmission mode for this IPdu. */
+	uint8 ComTxModeNumberOfRepetitions; /* @req COM281 */ /* Number of times the I-PDU will be sent in each I-PDU cycle. Set to 0 for DIRECT transmission mode and >0 for DIRECT/N-times mode. */
+	uint32 ComTxModeRepetitionPeriod; /* @req COM282 */ /* Defines the period of the transmissions in DIRECT/N-times and MIXED transmission modes. */
+	uint32 ComTxModeTimeOffset; /* @req COM180 */ /* Time before first transmission of this IPDU. (i.e. between the ipdu group start and this IPDU is sent for the first time. */
+	uint32 ComTxModeTimePeriod; /* @req COM178 */ /* Period of cyclic transmission for PERIODIC or MIXED. */
 } ComTxMode_type;
 
 /* @req COM496 */
 /* Configuartion container related to transmission parameters  */
 typedef struct ComTxIPdu_type {
-	const uint32 ComTxIPduMinimumDelayFactor; /* Minimum delay between successive transmissions of the I-PDU. */
-	const uint8 ComTxIPduUnusedAreasDefault; /* COM will fill unused areas within an IPdu with this bit patter. */
-	const ComTxMode_type ComTxModeTrue; /* Transmission modes for the I-PDU.*/
-	const ComTxMode_type ComTxModeFalse;
+	uint32 ComTxIPduMinimumDelayFactor; /* Minimum delay between successive transmissions of the I-PDU. */
+	uint8 ComTxIPduUnusedAreasDefault; /* COM will fill unused areas within an IPdu with this bit patter. */
+	ComTxMode_type ComTxModeTrue; /* Transmission modes for the I-PDU.*/
+	ComTxMode_type ComTxModeFalse;
 } ComTxIPdu_type;
 
 
 /** Configuration structure for signals and signal groups. */
 typedef struct ComSignal_type {
-    const Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
+    Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
     union {
-        const uint8 ComBitSize; /* @req COM158 */ /* Size of signal in bits */
-        const uint32 ComSignalLength; /* @req COM437 */ /* Size of signal in bytes for UINT8_N and UINT8_DYN */
+        uint8 ComBitSize; /* @req COM158 */ /* Size of signal in bits */
+        uint32 ComSignalLength; /* @req COM437 */ /* Size of signal in bytes for UINT8_N and UINT8_DYN */
     };
-    const uint32 ComErrorNotification; /** Notification function for error notification. */
-    const uint32 ComFirstTimeoutFactor; /* First timeout period for deadline monitoring. */
-    const uint16 ComHandleId; /* @req COM165 */ /* Identifier for the signal. */
-    const uint32 ComNotification; /* Tx and Rx notification function. */
-    const ComRxDataTimeoutAction_type ComRxDataTimeoutAction; /* @req COM412 */ /* Action to be performed when a reception timeout occurs. */
-    const ComSignalEndianess_type ComSignalEndianess; /* Endianess of the signal's network representation. */
+    uint32 ComErrorNotification; /** Notification function for error notification. */
+    uint32 ComFirstTimeoutFactor; /* First timeout period for deadline monitoring. */
+    uint16 ComHandleId; /* @req COM165 */ /* Identifier for the signal. */
+    uint32 ComNotification; /* Tx and Rx notification function. */
+    ComRxDataTimeoutAction_type ComRxDataTimeoutAction; /* @req COM412 */ /* Action to be performed when a reception timeout occurs. */
+    ComSignalEndianess_type ComSignalEndianess; /* Endianess of the signal's network representation. */
     const void *ComSignalInitValue; /* Value used to initialized this signal. */
-    const Com_SignalType ComSignalType; /* Type of the signal. */
-    const uint32 ComTimeoutFactor; /* Timeout period for deadline monitoring. */
-    const uint32 ComTimeoutNotification; /* @req COM552 */ /* Timeout notification function. */
-    const ComTransferProperty_type ComTransferProperty;
-    const Com_BitPositionType ComUpdateBitPosition; /* @req COM257 */ /* Update bit's position, NULL if none */
-    const uint8 ComSignalUseUpdateBit;  /* Set when update bit is used.*/
-    const ComFilterAlgorithm_type ComFilter; /* Filter for this signal. */
-    const uint16 ComIPduHandleId; /* @req COM175 */ /*ID of the IPDU that this signal belongs to */
-    const uint8 Com_EOL; /* Marks the end of list for the signal configuration array. */
+    Com_SignalType ComSignalType; /* Type of the signal. */
+    uint32 ComTimeoutFactor; /* Timeout period for deadline monitoring. */
+    uint32 ComTimeoutNotification; /* @req COM552 */ /* Timeout notification function. */
+    ComTransferProperty_type ComTransferProperty;
+    Com_BitPositionType ComUpdateBitPosition; /* @req COM257 */ /* Update bit's position, NULL if none */
+    uint8 ComSignalUseUpdateBit;  /* Set when update bit is used.*/
+    ComFilterAlgorithm_type ComFilter; /* Filter for this signal. */
+    uint16 ComIPduHandleId; /* @req COM175 */ /*ID of the IPDU that this signal belongs to */
+    uint8 Com_EOL; /* Marks the end of list for the signal configuration array. */
 } ComSignal_type;
 
 /* @req COM340 */
@@ -228,24 +228,24 @@ typedef struct ComIPdu_type {
 	 * the callout return false the IPdu will not be received/sent.
 	 */
 	boolean (*ComIPduCallout)(PduIdType PduId, const uint8 *IPduData);
-	const uint8 IPduOutgoingId; /* Outgoing PDU ID*/
-	const Com_IPduSignalProcessing ComIPduSignalProcessing; /* Signal processing mode for this IPDU. */
-	const uint8 ComIPduSize; /* Size of the IPDU in bytes. Range 0-8 for CAN */
-	const Com_IPduDirection ComIPduDirection; /* The direction of the IPDU. Receive or Send. */
-	const ComTxIPdu_type ComTxIPdu; /* Container of transmission related parameters. */
-	void *const ComIPduDataPtr; /* Reference to the actual pdu data storage */
-	void *const ComIPduDeferredDataPtr;
+	uint8 IPduOutgoingId; /* Outgoing PDU ID*/
+	Com_IPduSignalProcessing ComIPduSignalProcessing; /* Signal processing mode for this IPDU. */
+	uint8 ComIPduSize; /* Size of the IPDU in bytes. Range 0-8 for CAN */
+	Com_IPduDirection ComIPduDirection; /* The direction of the IPDU. Receive or Send. */
+	ComTxIPdu_type ComTxIPdu; /* Container of transmission related parameters. */
+	void *ComIPduDataPtr; /* Reference to the actual pdu data storage */
+	void *ComIPduDeferredDataPtr;
 	const ComSignal_type * const *ComIPduSignalRef; /* References to all signals contained in this I-PDU. */
-	const uint8 Com_EOL; /* Marks the end of list for this configuration array. */
+	uint8 Com_EOL; /* Marks the end of list for this configuration array. */
 } ComIPdu_type;
 
 /* @req COM825 */
 /* Top-level configuration container for COM. Exists once per configuration. */
 typedef struct Com_ConfigType {
-	const ComIPdu_type *ComIPdu; /* IPDU definitions */
-	const ComSignal_type *ComSignal; /* Signal definitions */
-	const uint8 ComNumOfSignals; /* Number of signals */
-	const uint8 ComNumOfIPDUs; /* Number of I-PDUs */
+	ComIPdu_type *ComIPdu; /* IPDU definitions */
+	ComSignal_type *ComSignal; /* Signal definitions */
+	uint8 ComNumOfSignals; /* Number of signals */
+	uint8 ComNumOfIPDUs; /* Number of I-PDUs */
 } Com_ConfigType;
 
 
@@ -265,9 +265,9 @@ uint8 Com_ReceiveSignal(Com_SignalIdType SignalId, void* SignalDataPtr); /*SID 0
 /* Helper functions */
 void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr, 
 	uint8 destByteLength, Com_BitPositionType segmentStartBitOffset, uint8 segmentBitLength);
-void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean *dataChanged);
+void Com_WriteToPDU(Com_SignalIdType signalId, const void *signalData, boolean *dataChanged);
 boolean Com_BufferLocked(PduIdType id);
-void Com_RxSignalProcess(const ComIPdu_type *IPdu);
+void Com_RxSignalProcess(ComIPdu_type *IPdu);
 Com_BitPositionType Com_GetByteOffset(Com_BitPositionType BitNumber);
 
 extern ComSignalEndianess_type Com_SystemEndianness;

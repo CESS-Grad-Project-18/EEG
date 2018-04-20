@@ -1,7 +1,7 @@
 #ifndef CANIF_CFG_H_
 #define CANIF_CFG_H_
 
-#include "Can.h"
+#include "../Can/Can.h"
 
 #define CANIF_VERSION_INFO_API   STD_OFF
 #define CANIF_DEV_ERROR_DETECT   STD_OFF
@@ -37,13 +37,13 @@ typedef enum {
     CANIF_CHANNEL_CONFIGURATION_CNT
 }CanIf_ConfigurationIndexType;
 
-typedef enum {
-	CANIF_CHL_LS,		/* CAN_CTRL_0 */
-	CANIF_CHL_HS,		/* CAN_CTRL_1 */
-    CANIF_CHANNEL_CNT
-}CanIf_ChannelIdType;
+/* typedef enum {
+	CANIF_CHL_LS,		// CAN_CTRL_0
+	CANIF_CHL_HS,		// CAN_CTRL_1
+    CANIF_CHANNELS_CNT
+}CanIf_ChannelIdType; */
 
-#include "CanIf_ConfigTypes.h"
+#include "CanIf_Types.h"
 
 extern const CanIf_ConfigType CanIf_Config; 
 

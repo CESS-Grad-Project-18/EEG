@@ -55,7 +55,7 @@ void Com_Init(const Com_ConfigType *config){
 	uint16 bufferIndex = 0, i, j;
 	for (i = 0; !ComConfig->ComIPdu[i].Com_EOL; i++) {
 	    boolean pduHasGroupSignal = FALSE;
-		const ComIPdu_type *IPdu = Com_GetIPDU(i);
+		ComIPdu_type *IPdu = Com_GetIPDU(i);
 
 		if (ComConfig->ComNumOfIPDUs <= i) {
 			Det_ReportError(COM_INIT_ID ,COM_E_TOO_MANY_IPDU);
@@ -170,14 +170,14 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void* SignalDataPtr){
 	}
 
 	/* Store pointer to signal for easier coding. */
-	const ComSignal_type * Signal = Com_GetSignal(SignalId);
+	ComSignal_type * Signal = Com_GetSignal(SignalId);
 
     if (Signal->ComIPduHandleId == NO_PDU_REFERENCE) {
         /* Return error if signal is not connected to an IPdu*/
         return COM_SERVICE_NOT_AVAILABLE;
     }
 
-    const ComIPdu_type *IPdu = Com_GetIPDU(Signal->ComIPduHandleId);
+    ComIPdu_type *IPdu = Com_GetIPDU(Signal->ComIPduHandleId);
 
     if (Com_BufferLocked(Com_GetPDUId(IPdu))) {
         return COM_BUSY;
@@ -259,7 +259,7 @@ void Com_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr){
 		Det_ReportError(COM_RXINDICATION_ID, COM_INVALID_PDU_ID);
 		return;
 	}
-	const ComIPdu_type *IPdu = Com_GetIPDU(RxPduId);
+	ComIPdu_type *IPdu = Com_GetIPDU(RxPduId);
 	//imask_t state;
 	//Irq_Save(state);
 	/* @req COM649 */ /* Interrups disabled */
@@ -309,7 +309,7 @@ void Com_TxConfirmation(PduIdType TxPduId){
 	}
 
     /* @req COM468 */ /* Call all notifications for the I-PDU */
-    const ComIPdu_type *IPdu = Com_GetIPDU(TxPduId);
+    ComIPdu_type *IPdu = Com_GetIPDU(TxPduId);
 
     if (IPdu->ComIPduDirection == RECEIVE) {
         Det_ReportError(COM_TXCONFIRMATION_ID, COM_INVALID_PDU_ID);
@@ -415,7 +415,7 @@ boolean Com_BufferLocked(PduIdType id) {
 }
 
 
-void Com_RxSignalProcess(const ComIPdu_type *IPdu){
+void Com_RxSignalProcess(ComIPdu_type *IPdu){
 	/* !req COM053 */
 	/* @req COM055 */
 	/* !req COM396 */ /* Neither invalidation nor filtering supported */
@@ -457,9 +457,9 @@ void Com_RxSignalProcess(const ComIPdu_type *IPdu){
 	}
 }
 
-void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boolean *dataChanged){
+void Com_WriteToPDU(Com_SignalIdType signalId, const void *signalData, boolean *dataChanged){
 	/* @req COM221 */ /* COM module shall perform endianness conversion before the I-PDU callout on sender side. */
-	const ComSignal_type * Signal =  Com_GetSignal(signalId);
+	ComSignal_type * Signal =  Com_GetSignal(signalId);
 	Com_SignalType signalType = Signal->ComSignalType;
 	uint8 signalLength = Signal->ComBitSize / 8;
 	Com_BitPositionType bitPosition = Signal->ComBitPosition;
@@ -469,7 +469,7 @@ void Com_WriteToPDU(const Com_SignalIdType signalId, const void *signalData, boo
 	uint8 signalBufferSize = Com_SignalTypeToSize(signalType, signalLength);
 	uint8 pduSignalMask[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	uint8 signalDataBytesArray[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	const uint8 *signalDataBytes = (const uint8 *)signalData;
+	uint8 *signalDataBytes = (uint8 *)signalData;
 	//imask_t irq_state;
 
 	//Irq_Save(irq_state);

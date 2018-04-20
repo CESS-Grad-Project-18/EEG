@@ -1,6 +1,9 @@
 #ifndef CALYPSO_H
 #define CALYPSO_H
-#include "typedefs.h"
+typedef uint8 uint8_t;
+typedef volatile uint8 vuint8_t;
+typedef volatile uint16 vuint16_t;
+typedef volatile uint32 vuint32_t;
 #ifdef __cplusplus
 extern "C" {
 #endif

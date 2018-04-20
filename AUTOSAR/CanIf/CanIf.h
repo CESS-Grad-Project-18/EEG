@@ -55,7 +55,9 @@ Std_ReturnType CanIf_SetControllerMode(uint8 Controller, CanIf_ControllerModeTyp
 Std_ReturnType CanIf_GetControllerMode(uint8 Controller, CanIf_ControllerModeType *ControllerModePtr);
 Std_ReturnType CanIf_SetPduMode( uint8 Controller, CanIf_PduChannelModeType PduModeRequest);
 Std_ReturnType CanIf_GetPduMode( uint8 Controller, CanIf_PduChannelModeType *PduModePtr);
+/* Helper functions */
 CanIf_TxPduCfgType * CanIf_FindTxPduEntry(PduIdType id);
 CanIf_RxPduCfgType * CanIf_FindRxPduEntry(PduIdType id);
+void CanIf_PreInit_InitController(uint8 Controller, uint8 ConfigurationIndex);
 
 #endif /*CANIF_H*/

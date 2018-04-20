@@ -26,8 +26,8 @@ typedef enum Can_ProcessingType {
 } Can_ProcessingType;
 
 typedef enum Can_HandleTypeType {
-    BASIC,
-    FULL
+    BASIC_HANDLE,
+    FULL_HANDLE
 } Can_HandleTypeType;
 
 typedef struct Can_ControllerType {

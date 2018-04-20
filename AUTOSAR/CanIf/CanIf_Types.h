@@ -97,8 +97,8 @@ typedef enum {
 
 
 typedef enum Can_HohType {
-	BASIC,
-	FULL
+	BASIC_HOH,
+	FULL_HOH
 } Can_HohType;
 
 
@@ -206,7 +206,7 @@ typedef struct CanIf_InitHohCfgType {
 } CanIf_InitHohCfgType;
 
 typedef struct CanIf_BufferCfgType {
-    CanIf_HthCfgType CanIfBufferHthRef;
+    const CanIf_HthCfgType* CanIfBufferHthRef;
     uint8 CanIfBufferSize;
 } CanIf_BufferCfgType;
 

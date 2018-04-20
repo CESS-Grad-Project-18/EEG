@@ -6,7 +6,7 @@ const uint8 Com_SignalInitValue_SleepSignal[1] = {0x0};
 static uint8 SleepSignal_IPduBuffer[1];
 static uint8 EmotionSignal_IPduBuffer[1];
 /* I-PDU signal lists. */
-const ComSignal_type ComSignal[] = {
+static ComSignal_type ComSignal[] = {
 
 
     { /* Emotion Signal? */
@@ -67,7 +67,7 @@ static const ComSignal_type * const SleepSignal_SignalRef[]={
 
     
 /* I-PDU definitions */
-static const ComIPdu_type ComIPdu[] = {
+static ComIPdu_type ComIPdu[] = {
 
     {
         .ComIPduCallout =  NULL,

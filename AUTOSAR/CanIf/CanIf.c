@@ -153,11 +153,11 @@ void CanIf_PreInit_InitController(uint8 Controller, uint8 ConfigurationIndex){
 
 
 	const Can_ControllerIdType canControllerId = CanIf_GetChannelCtrl(channel);
-	// Validate that the configuration at the index match the right channel
+ /*	// Validate that the configuration at the index match the right channel
 	if(CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfControllerIdRef != channel){
     Det_ReportError(CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER);    
     return;
-  } 
+  } */
 	const Can_ControllerType *canConfig = &CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfCtrlCanCtrlRef;
 	// Validate that the CanIfControllerConfig points to configuration for the right Can Controller
 	if(canConfig->CanControllerId != canControllerId){
@@ -500,7 +500,7 @@ void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr
   for (i = 0; i < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanRxPduIds; i++){
     if (entry->CanIfCanRxPduHrhRef->CanIfHrhIdSymRef == Mailbox->Hoh){
       /* Software filtering */
-      if (entry->CanIfCanRxPduHrhRef->CanIfHrhType == BASIC){
+      if (entry->CanIfCanRxPduHrhRef->CanIfHrhType == BASIC_HOH){
         if (entry->CanIfCanRxPduHrhRef->CanIfSoftwareFilterHrh){
           if (entry->CanIfSoftwareFilterType == MASK){
             if ((Mailbox->CanId & entry->CanIfCanRxPduCanIdMask) ==
@@ -525,8 +525,8 @@ void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr
        /* entry->CanIfRxUserType */
           /* Send Can frame to PDU router */
         		PduInfoType pduInfo;
-        		pduInfo.SduLength = CanDlc;
-        		pduInfo.SduDataPtr = (uint8 *)CanSduPtr;
+        		pduInfo.SduLength = entry->CanIfCanRxPduIdDlc;
+        		pduInfo.SduDataPtr = (uint8 *)entry->PduIdRef; /* TODO: Check*/
             	PduR_CanIfRxIndication(entry->CanIfCanRxPduId,pduInfo.SduDataPtr);
     }
 
