@@ -36,25 +36,25 @@ extern const ComRxIPduCallout_type ComRxIPduCallouts[];
 extern const ComTxIPduCallout_type ComTxIPduCallouts[];
 extern const ComNotificationCallout_type ComNotificationCallouts[];
 
-typedef enum{
+typedef enum Com_StatusType {
 	COM_UNINIT,
 	COM_INIT
 } Com_StatusType;
 
 /* @req COM119 */
-typedef enum {
+typedef enum Com_IPduSignalProcessing {
 	IMMEDIATE,
 	DEFERRED
 } Com_IPduSignalProcessing;
 
 /* @req COM493 */
-typedef enum {
+typedef enum Com_IPduDirection {
 	RECEIVE,
 	SEND
 } Com_IPduDirection;
 
 /* @req COM232 */
-typedef enum {
+typedef enum ComTransferProperty_type {
 	PENDING, /* Transmission not triggered */
 	TRIGGERED, /* Can be triggered by I-PDU */
 	TRIGGERED_ON_CHANGE, /* Triggered if value is different than stored */
@@ -63,7 +63,7 @@ typedef enum {
 } ComTransferProperty_type;
 
 /* @req COM137 */
-typedef enum {
+typedef enum ComTxModeMode_type {
 	DIRECT,
 	MIXED,
 	NONE,
@@ -72,7 +72,7 @@ typedef enum {
 
 /* @req COM602 */
 /* Filtering mechanisms used on sender side for Transmission Mode Conditions (TMC) but shall not filter out signals on sender side.*/
-typedef enum {
+typedef enum ComFilterAlgorithm_type {
 	ALWAYS,
 	MASKED_NEW_DIFFERS_MASKED_OLD,
 	MASKED_NEW_DIFFERS_X,
@@ -84,7 +84,7 @@ typedef enum {
 } ComFilterAlgorithm_type;
 
 /* @req COM157 */
-typedef enum {
+typedef enum ComSignalEndianess_type {
 	COM_BIG_ENDIAN,
 	COM_LITTLE_ENDIAN,
 	COM_OPAQUE
@@ -92,7 +92,7 @@ typedef enum {
 
 /* @req COM291 */
 /* reception deadline monitoring of the I-PDU using the smallest configured non zero timeout parameter */
-typedef enum {
+typedef enum ComRxDataTimeoutAction_type {
 	NONEX,
 	REPLACE
 } ComRxDataTimeoutAction_type;
@@ -100,7 +100,7 @@ typedef enum {
 
 /* @req COM127 */
 /* Used to determine signedness of the signal and may be used to reserve storage */
-typedef enum {
+typedef enum Com_SignalType {
 	BOOLEAN,
 	FLOAT32,
 	FLOAT64,
@@ -169,7 +169,7 @@ typedef uint8 Com_ServiceIdType;
 #define COMServiceId_TpTxConfirmation 0x48
 
 
-typedef struct {
+typedef struct Com_BufferStateType {
 	PduLengthType index;
 	boolean isLocked;
 } Com_BufferStateType;
@@ -177,7 +177,7 @@ typedef struct {
 
 /* @req COM351 */
 /* Configuration container for Tx-mode for I-PDUs. */
-typedef struct {
+typedef struct ComTxMode_type {
 	const ComTxModeMode_type ComTxModeMode; /* Transmission mode for this IPdu. */
 	const uint8 ComTxModeNumberOfRepetitions; /* @req COM281 */ /* Number of times the I-PDU will be sent in each I-PDU cycle. Set to 0 for DIRECT transmission mode and >0 for DIRECT/N-times mode. */
 	const uint32 ComTxModeRepetitionPeriod; /* @req COM282 */ /* Defines the period of the transmissions in DIRECT/N-times and MIXED transmission modes. */
@@ -187,7 +187,7 @@ typedef struct {
 
 /* @req COM496 */
 /* Configuartion container related to transmission parameters  */
-typedef struct {
+typedef struct ComTxIPdu_type {
 	const uint32 ComTxIPduMinimumDelayFactor; /* Minimum delay between successive transmissions of the I-PDU. */
 	const uint8 ComTxIPduUnusedAreasDefault; /* COM will fill unused areas within an IPdu with this bit patter. */
 	const ComTxMode_type ComTxModeTrue; /* Transmission modes for the I-PDU.*/
@@ -196,7 +196,7 @@ typedef struct {
 
 
 /** Configuration structure for signals and signal groups. */
-typedef struct {
+typedef struct ComSignal_type {
     const Com_BitPositionType ComBitPosition; /* @req COM259 */ /* Start bit/position of signal within I-PDU*/
     union {
         const uint8 ComBitSize; /* @req COM158 */ /* Size of signal in bits */
@@ -221,7 +221,7 @@ typedef struct {
 } ComSignal_type;
 
 /* @req COM340 */
-typedef struct {
+typedef struct ComIPdu_type {
 	/** Callout function of this IPDU.
 	 * The callout function is an optional function used both on sender and receiver side.
 	 * If configured, it determines whether an IPdu is considered for further processing. If
@@ -241,7 +241,7 @@ typedef struct {
 
 /* @req COM825 */
 /* Top-level configuration container for COM. Exists once per configuration. */
-typedef struct {
+typedef struct Com_ConfigType {
 	const ComIPdu_type *ComIPdu; /* IPDU definitions */
 	const ComSignal_type *ComSignal; /* Signal definitions */
 	const uint8 ComNumOfSignals; /* Number of signals */

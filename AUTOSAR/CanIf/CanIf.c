@@ -6,6 +6,10 @@
 #include "../PduR/PduR.h"
 #include "CanIf_Cfg.h"
 #include "../Can/Can.h"
+#include "../COM/ComStack_Types.h"
+#include "CanIf_Types.h"
+#include "../Can/Can_GeneralTypes.h"
+#include "../Can/Can_Cfg.h"
 
 #define CanIf_GetChannelCtrl(channel) (CanIf_ConfigPtr->ChannelToControllerMap[channel])
 
@@ -115,11 +119,11 @@ void CanIf_InitController(uint8 Controller, uint8 ConfigurationIndex){
   const Can_ControllerIdType canControllerId = CanIf_GetChannelCtrl(channel);
 
   // Validate that the configuration at the index match the right channel
-  if(CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfCtrlCanCtrlRef != channel){
+  if(CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfCtrlCanCtrlRef.CanControllerId != channel){
     Det_ReportError(CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER);
     return;
   }
-  canConfig = CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfCtrlCanCtrlRef;
+  canConfig = &CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfCtrlCanCtrlRef;
 
   // Validate that the CanIfControllerConfig points to configuration for the right Can Controller
   if(canConfig->CanControllerId != canControllerId){
@@ -281,7 +285,7 @@ CanIf_TxPduCfgType * CanIf_FindTxPduEntry(PduIdType id){
 	if (id >= CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanTXPduIds) {
 		return NULL;
 	} else {
-		return &CanIf_ConfigPtr->InitConfig->CanIfTxPduConfigPtr[id];
+		return (CanIf_TxPduCfgType *) &CanIf_ConfigPtr->InitConfig->CanIfTxPduConfigPtr[id];
 	}
 }
 
@@ -289,7 +293,7 @@ CanIf_RxPduCfgType * CanIf_FindRxPduEntry(PduIdType id) {
 	if (id >= CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanRxPduIds) {
 		return NULL;
 	} else {
-		return &CanIf_ConfigPtr->InitConfig->CanIfRxPduConfigPtr[id];
+		return (CanIf_RxPduCfgType *) &CanIf_ConfigPtr->InitConfig->CanIfRxPduConfigPtr[id];
 	}
 }
 
@@ -332,7 +336,7 @@ Std_ReturnType CanIf_Transmit(PduIdType CanIfTxSduId, const PduInfoType *CanIfTx
     return E_NOT_OK;
   }
 
-  if ((pduCMode != CANIF_ONLINE) && (pduCMode != CANIF_ONLINE)){
+  if (pduCMode != CANIF_ONLINE){
     return E_NOT_OK;
   }
 
@@ -455,8 +459,7 @@ void CanIf_TxConfirmation(PduIdType canTxPduId){
       if (entry->CanIfUserTxConfirmation != NULL){
         CanIf_PduChannelModeType mode;
         CanIf_GetPduMode(entry->CanIfCanTxPduHthRef->CanIfCanControllerIdRef, &mode);
-        if ((mode == CANIF_ONLINE) || (mode == CANIF_ONLINE)
-            || (mode == CANIF_OFFLINE_ACTIVE) || (mode == CANIF_OFFLINE_ACTIVE_RX_ONLINE) ){
+        if (mode == CANIF_ONLINE){
           entry->CanIfUserTxConfirmation(entry->CanIfTxPduId);  /* CANIF053 */
         }
       }
@@ -469,14 +472,14 @@ void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr
     return;
   }
 
-  if(CanSduPtr == NULL){
+  if(PduInfoPtr->SduDataPtr == NULL){
     Det_ReportError(CANIF_MODULE_ID, 0, CANIF_RXINDICATION_ID, CANIF_E_PARAM_POINTER);
     return;
   }
 
   /* Check PDU mode before continue processing */
   CanIf_PduChannelModeType mode;
-  CanIf_ChannelIdType channel = CanIf_FindHrhChannel((Can_HRHType) Hrh);
+  CanIf_ChannelIdType channel = CanIf_FindHrhChannel((Can_HRHType) Mailbox->Hoh);
   if (channel == -1){  /* Invalid HRH */
     return;
   }
@@ -495,13 +498,13 @@ void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr
 
   /* Find the CAN id in the RxPduList */
   for (i = 0; i < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanRxPduIds; i++){
-    if (entry->CanIfCanRxPduHrhRef->CanIfHrhIdSymRef == Hrh){
+    if (entry->CanIfCanRxPduHrhRef->CanIfHrhIdSymRef == Mailbox->Hoh){
       /* Software filtering */
       if (entry->CanIfCanRxPduHrhRef->CanIfHrhType == BASIC){
         if (entry->CanIfCanRxPduHrhRef->CanIfSoftwareFilterHrh){
           if (entry->CanIfSoftwareFilterType == MASK){
-            if ((CanId & entry->CanIfCanRxPduCanIdMask) ==
-                (entry->CanIfCanRxPduCanId & entry->CanIfCanRxPduCanIdMask)){
+            if ((Mailbox->CanId & entry->CanIfCanRxPduCanIdMask) ==
+                (entry->CanIfCanRxPduIdCanId & entry->CanIfCanRxPduCanIdMask)){
               // We found a pdu so call higher layers
             }
             else{
@@ -514,7 +517,7 @@ void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr
           }
         }
       }
-      if (CanDlc > entry->CanIfCanRxPduDlc){
+      if (PduInfoPtr->SduLength > entry->CanIfCanRxPduDlc){
         Det_ReportError(CANIF_RXINDICATION_ID, CANIF_E_PARAM_DLC);
         return;
       }
@@ -524,7 +527,7 @@ void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr
         		PduInfoType pduInfo;
         		pduInfo.SduLength = CanDlc;
         		pduInfo.SduDataPtr = (uint8 *)CanSduPtr;
-            	PduR_CanIfRxIndication(entry->CanIfCanRxPduId,&pduInfo);
+            	PduR_CanIfRxIndication(entry->CanIfCanRxPduId,pduInfo.SduDataPtr);
     }
 
     entry++;

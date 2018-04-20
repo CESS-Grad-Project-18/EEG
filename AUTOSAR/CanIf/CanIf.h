@@ -48,7 +48,6 @@
 void CanIf_Init(const CanIf_ConfigType *ConfigPtr);
 Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId, const PduInfoType *PduInfoPtr);
 void CanIf_TxConfirmation(PduIdType canTxPduId);
-void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr);
 
 
 void CanIf_InitController(uint8  Controller, uint8  ConfigurationIndex);

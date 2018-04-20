@@ -39,6 +39,12 @@ const CanIf_InitHohCfgType CanIfHohConfigData[] = {
 	},
 };
 
+const CanIf_BufferCfgType CanIfBufferCfgData[] = {
+		{
+			.CanIfBufferHthRef = CanIfHthConfigData_CanIfInitHohCfg[0],
+			.CanIfBufferSize = 2
+		},
+};
 
 const CanIf_TxPduCfgType CanIfTxPduConfigData[] = {
 	{
@@ -48,7 +54,7 @@ const CanIf_TxPduCfgType CanIfTxPduConfigData[] = {
     	.CanIfCanTxPduType 			 = STATIC,
     	.CanIfReadTxPduNotifyStatus = FALSE,
     	.CanIfTxPduIdCanIdType 		 = STANDARD_CAN,
-    	.CanIfUserTxConfirmation 	 = PDUR_CALLOUT,
+    	.CanIfUserTxConfirmation 	 = NULL, /* PDUR_CALLOUT */
     	.CanIfTxPduBufferRef		 = &CanIfBufferCfgData[0],
     	.PduIdRef 					 = NULL,
 	},
@@ -59,7 +65,7 @@ const CanIf_TxPduCfgType CanIfTxPduConfigData[] = {
     	.CanIfCanTxPduType 			 = STATIC,
     	.CanIfReadTxPduNotifyStatus = FALSE,
     	.CanIfTxPduIdCanIdType 		 = STANDARD_CAN,
-    	.CanIfUserTxConfirmation 	 = PDUR_CALLOUT,
+    	.CanIfUserTxConfirmation 	 = NULL, /* PDUR_CALLOUT */
     	.CanIfTxPduBufferRef		 = &CanIfBufferCfgData[0],
     	.PduIdRef 					 = NULL,
 	},
@@ -74,7 +80,7 @@ const CanIf_RxPduCfgType CanIfRxPduConfigData[] = {
     	.CanIfReadRxPduNotifyStatus 		 = FALSE,
 		.CanIfCanRxPduHrhRef		 		 = &CanIfHrhConfigData_CanIfInitHohCfg[0],
     	.CanIfRxPduIdCanIdType 		  		 = STANDARD_CAN,
-    	.CanIfUserRxIndication 		 		 = PDUR_CALLOUT,
+    	.CanIfUserRxIndication 		 		 = NULL, /* PDUR_CALLOUT */
     	.CanIfCanRxPduCanIdMask 	 		 = 0x7FF,
     	.PduIdRef	 				 		 = NULL,
 	},
@@ -86,7 +92,7 @@ const CanIf_RxPduCfgType CanIfRxPduConfigData[] = {
     	.CanIfReadRxPduNotifyStatus 		 = FALSE,
 		.CanIfCanRxPduHrhRef		 		 = &CanIfHrhConfigData_CanIfInitHohCfg[0],
     	.CanIfRxPduIdCanIdType 		 		 = STANDARD_CAN,
-    	.CanIfUserRxIndication 		 		 = PDUR_CALLOUT,
+    	.CanIfUserRxIndication 		 		 = NULL, /* PDUR_CALLOUT */
     	.CanIfCanRxPduCanIdMask 	 		 = 0x7FF,
     	.PduIdRef	 				 		 = NULL,
 	},

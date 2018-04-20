@@ -8,26 +8,26 @@
 #include "Std_Types.h"
 
 typedef uint16 PduIdType;
-typedef uint16 PduLengthType;
-typedef struct {
+typedef uint8 PduLengthType;
+typedef struct PduInfoType {
 	uint8 *SduDataPtr;			/* Payload */
 	PduLengthType SduLength;	/* Length of SDU */
 } PduInfoType;
 
-typedef enum {
+typedef enum TpDataStateType {
 	TP_DATACONF,
 	TP_DATARETRY,
 	TP_CONFPENDING,
 	TP_NORETRY,
 } TpDataStateType;
 
-typedef struct {
+typedef struct RetryInfoType {
 	TpDataStateType TpDataState;
 	PduLengthType TxTpDataCnt;
 } RetryInfoType;
 
 
-typedef enum {
+typedef enum BufReq_ReturnType {
 	BUFREQ_OK=0,
 	BUFREQ_NOT_OK,
 	BUFREQ_BUSY,

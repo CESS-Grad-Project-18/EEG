@@ -34,13 +34,19 @@ Can_ReturnType Can_SetControllerMode(uint8 controller, Can_StateTransitionType t
             Irq_Restore(state);
             break;
         case CAN_T_WAKEUP:
-            VALIDATE(canUnit->state == CANIF_CS_SLEEP, 0x3, CAN_E_TRANSITION);
+            if(canUnit->state != CANIF_CS_STOPPED){
+                Det_ReportError(0x3, CAN_E_TRANSITION);
+                return CAN_NOT_OK;
+            }
             canUnit->state = CANIF_CS_STOPPED;
             break;
         /* @req CAN258 */
         /* @req CAN290 */
         case CAN_T_SLEEP:
-            VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
+            if(canUnit->state != CANIF_CS_STOPPED){
+                Det_ReportError(0x3, CAN_E_TRANSITION);
+                return CAN_NOT_OK;
+            }
             /* Enable wake up irq */
             canUnit->state = CANIF_CS_SLEEP;
             break;
@@ -50,7 +56,10 @@ Can_ReturnType Can_SetControllerMode(uint8 controller, Can_StateTransitionType t
             break;
         default:
             // Should be reported to DEM but DET is the next best
-            VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
+            if(canUnit->state != CANIF_CS_STOPPED){
+                Det_ReportError(0x3, CAN_E_TRANSITION);
+                return CAN_NOT_OK;
+            }
             break;
     }
     return rv;

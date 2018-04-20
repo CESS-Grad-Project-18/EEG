@@ -23,18 +23,10 @@
 #define CANIF_ID_EMOTIONSIGNAL                    0
 #define CANIF_ID_SLEEPSIGNAL                      1
 
-typedef enum {
+typedef enum Can_ControllerIdType {
 	CAN_CTRL_1 = 0,
 	CAN_CONTROLLER_CNT = 2
 } Can_ControllerIdType;
-
-typedef struct {
-
-	boolean CanControllerActivation;
-	uint32 CanControllerBaseAddress;
-	uint8 CanControllerId;
-
-} Can_ControllerType;
 
 #endif
 
