@@ -61,5 +61,6 @@ void Can_MainFunction_Read_0(void); /* SID: 0x08 */
 void Can_MainFunction_Write_1(void); /* SID: 0x01 */
 void Can_MainFunction_Read_1(void); /* SID: 0x08 */
 
+void Can_MCSysInit(void);
 
 #endif /* CAN_H */

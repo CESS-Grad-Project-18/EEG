@@ -23,8 +23,6 @@
 
 #include "PduR_Cfg.h"
 #include "PduR_Types.h"
-#include "../CanIf/CanIf_Types.h"
-#include "../COM/Com.h"
 
 
 extern const PduR_PBConfigType *PduRConfig;
@@ -46,113 +44,5 @@ void PduR_CanIfTxConfirmation(PduIdType CanTxPduId); /* SID: 0x02 */
 /* COM */
 Std_ReturnType PduR_ComTransmit(PduIdType ComTxPduId, const PduInfoType *PduInfoPtr); /* SID: 0x15 */
 
-/*		PduR structs		*/
-typedef struct PduRBswModule PduRBswModule;
-typedef struct Pdu Pdu;
-
-struct PduRBswModule{
-	PduRBswModule* PduRBswModuleRef;
-	boolean PduRRetransmission;
-	boolean PduRUseTag;
-	boolean PduRTxConfirmation;
-	boolean PduRCancelTransmit;
-	boolean PduRCommunicationInterface;
-	boolean PduRTransportProtocol;
-	boolean PduRTriggertransmit;
-	boolean PduRUpperModule;
-	boolean PduRLowerModule;
-	boolean PduRChangeParameterApi;
-	boolean PduRCancelReceive;
-}PduRBswModules;
-
-typedef struct PduRGeneral {
-	boolean PduRDevErrorDetect;
-	boolean PduRVersionInfoApi;
-	boolean PduRZeroCostOperation;
-	boolean PduRMetaDataSupport;
-} PduRGeneral;
-
-typedef enum PduRDestPduDataProvision {
-	PDUR_DIRECT,
-	PDUR_TRIGGERTRANSMIT
-} PduRDestPduDataProvision;
-
-typedef struct PduRSrcPdu {
-	uint16 PduRSourcePduHandleId;
-	boolean PduRSrcPduUpTxConf;
-	Pdu* PduRSrcPduRef;
-} PduRSrcPdu;
-
-typedef struct PduRDefaultValueElement {
-	uint8 PduRDefaultValueElement;
-	uint32 PduRDefaultValueElementBytePosition;
-} PduRDefaultValueElement;
-
-typedef struct PduRDefaultValue {
-    PduRDefaultValueElement* PduRDefaultValueElement;
-} PduRDefaultValue;
-
-typedef struct PduRTpBuffer {
-	uint32 PduRTpBufferLength;
-} PduRTpBuffer;
-
-typedef struct PduRTpBufferTable {
-    uint16 PduRMaxTpBufferNumber;
-    PduRTpBuffer* PduRTpBuffer;
-} PduRTpBufferTable;
-
-typedef struct PduRTxBuffer {
-	uint32 PduRPduMaxLength;
-	uint8 PduRTxBufferDepth;
-} PduRTxBuffer;
-
-typedef struct PduRTxBufferTable {
-    uint16 PduRMaxTxBufferNumber;
-    PduRTxBuffer* PduRTxBuffer;
-} PduRTxBufferTable;
-
-typedef struct PduRDestPdu {
-    PduRDestPduDataProvision PduRDestPduDataProvision;
-    uint16 PduRDestPduHandleId;
-    uint16 PduRTpThreshold;
-    boolean PduRTransmissionConfirmation;
-    Pdu* PduRDestPduRef;
-    PduRTxBuffer* PduRDestTxBufferRef;
-    PduRDefaultValue PduRDefaultValue;
-} PduRDestPdu;
-
-
-typedef struct PduRRoutingPathGroup {
-	boolean PduRIsEnabledAtInit;
-	uint16 PduRRoutingPathGroupId;
-	PduRDestPdu* PduRDestPduRef;
-} PduRRoutingPathGroup;
-
-typedef struct PduRRoutingPath {
-	PduRDestPdu* PduRDestPdu;
-	PduRSrcPdu PduRSrcPdu;
-} PduRRoutingPath;
-
-typedef struct PduRRoutingTable {
-	PduRRoutingPath* PduRRoutingPath;
-} PduRRoutingTable;
-
-typedef struct PduRRoutingTables {
-	uint16 PduRConfigurationId;
-	uint16 PduRMaxRoutingPathCnt;
-	uint16 PduRMaxRoutingPathGroupCnt;
-	uint16 PduRMaxRoutingTableCnt;
-	PduRRoutingPathGroup* PduRRoutingPathGroup;
-	PduRRoutingTable* PduRRoutingTable;
-	PduRTpBufferTable PduRTpBufferTable;
-	PduRTxBufferTable PduRTxBufferTable;
-} PduRRoutingTables;
-
-struct Pdu {
-	ComIPdu_type ComPduIdRef;
-	PduRSrcPdu PduRSrcPduRef;
-	PduRDestPdu PduRDestPduRef;
-	CanIf_RxPduCfgType CanIfRxPduRef;
-};
 
 #endif /* PDUR_H */

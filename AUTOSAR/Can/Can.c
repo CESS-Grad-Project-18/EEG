@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+#define Can_GetCtrlPvtData(cont) (&CanUnit[cont])
+
 uint32  MsgCode;              /* Received message buffer code */
 uint32  MsgId;                /* Received message ID */
 uint32  MsgLen;            /* Recieved message number of data bytes */
@@ -17,21 +20,25 @@ typedef enum {
 
 
 Can_ReturnType Can_SetControllerMode(uint8 controller, Can_StateTransitionType transition) {
-    imask_t state;
+    /* imask_t state;
     CAN_HW_t *canHw;
     Can_ReturnType rv = CAN_OK;
-    VALIDATE((controller < GET_CONTROLLER_CNT()), 0x3, CAN_E_PARAM_CONTROLLER);
-    Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
-    VALIDATE((canUnit->state != CANIF_CS_UNINIT), 0x3, CAN_E_UNINIT);
+    if(controller > CAN_CONTROLLER_CNT){
+        Det_ReportError(0x3, CAN_E_PARAM_CONTROLLER);
+        return CAN_NOT_OK;
+    }
+    Can_UnitType *canUnit = Can_GetCtrlPvtData(controller);
+    if(canUnit->state -= CANIF_CS_UNINIT){
+        Det_ReportError(0x3, CAN_E_UNINIT);
+        return CAN_NOT_OK;
+    }
     canHw = GetController(controller);
     switch (transition) {
         case CAN_T_START:
             canUnit->state = CANIF_CS_STARTED;
-            Irq_Save(state);
             if (canUnit->lock_cnt == 0) {   // REQ CAN196
                 Can_EnableControllerInterrupts(controller);
             }
-            Irq_Restore(state);
             break;
         case CAN_T_WAKEUP:
             if(canUnit->state != CANIF_CS_STOPPED){
@@ -40,14 +47,14 @@ Can_ReturnType Can_SetControllerMode(uint8 controller, Can_StateTransitionType t
             }
             canUnit->state = CANIF_CS_STOPPED;
             break;
-        /* @req CAN258 */
-        /* @req CAN290 */
+        // @req CAN258
+        // @req CAN290
         case CAN_T_SLEEP:
             if(canUnit->state != CANIF_CS_STOPPED){
                 Det_ReportError(0x3, CAN_E_TRANSITION);
                 return CAN_NOT_OK;
             }
-            /* Enable wake up irq */
+            // Enable wake up irq
             canUnit->state = CANIF_CS_SLEEP;
             break;
         case CAN_T_STOP:
@@ -62,17 +69,14 @@ Can_ReturnType Can_SetControllerMode(uint8 controller, Can_StateTransitionType t
             }
             break;
     }
-    return rv;
+    return rv; */
 }
 
 void Can_DisableControllerInterrupts(uint8 controller) {
 }
 
-void Can_EnableControllerInterrupts(uint8 controller) {
-}
-
-Can_ReturnType Can_Write(Can_HTHType hth, Can_PduType *pduInfo) {
-    Can_ReturnType rv = CAN_OK;
+Can_ReturnType Can_Write(Can_HwHandleType Hth, const Can_PduType* PduInfo) {
+    /* Can_ReturnType rv = CAN_OK;
     CAN_HW_t *canHw;
     const Can_HardwareObjectType *hohObj;
     const Can_ControllerConfigType *canHwConfig;
@@ -83,11 +87,11 @@ Can_ReturnType Can_Write(Can_HTHType hth, Can_PduType *pduInfo) {
         Det_ReportError(0x6, CAN_E_UNINIT);
         return CAN_NOT_OK;
     }
-    if(pduInfo == NULL){
+    if(PduInfo == NULL){
         Det_ReportError(0x6, CAN_E_PARAM_POINTER);
         return CAN_NOT_OK;
     }
-    if(pduInfo->length > 8){
+    if(PduInfo->length > 8){
         Det_ReportError(0x6, CAN_E_PARAM_DLC);
         return CAN_NOT_OK;
     }
@@ -110,27 +114,27 @@ Can_ReturnType Can_Write(Can_HTHType hth, Can_PduType *pduInfo) {
 
         canHwConfig = Can_GetControllerConfig(Can_Global.channelMap[controller]);
 
-        /* Copy data to Msg Box Start */
-        canHw->txMsg[0].id = pduInfo->id;
-        canHw->txMsg[0].dlc = pduInfo->length;
-        assert(pduInfo->length <= 8);
-        memcpy(canHw->txMsg[0].data, pduInfo->sdu, pduInfo->length);
-        /* Copy data to Msg Box End */
+        // Copy data to Msg Box Start
+        canHw->txMsg[0].id = PduInfo->id;
+        canHw->txMsg[0].dlc = PduInfo->length;
+        assert(PduInfo->length <= 8);
+        memcpy(canHw->txMsg[0].data, PduInfo->sdu, PduInfo->length);
+        // Copy data to Msg Box End
         if ((canHwConfig->CanTxProcessing == INTERRUPT) &&
             (canUnit->lock_cnt == 0)) {
-            /* Turn on the tx interrupt mailboxes */
+            // Turn on the tx interrupt mailboxes
             canHw->TIER = BM_TX0; // We only use TX0
             Can_SocketTriggerTx(controller);
         }
-        /* Store pdu handle in unit to be used by TxConfirmation */
-        canUnit->swPduHandle = pduInfo->swPduHandle;
+        // Store pdu handle in unit to be used by TxConfirmation
+        canUnit->swPduHandle = PduInfo->swPduHandle;
 
     } else {
         rv = CAN_BUSY;
     }
     Irq_Restore(state);
 
-    return rv;
+    return rv; */
 }
 
 void Can_MainFunction_Write_0(void) {
@@ -168,7 +172,7 @@ void Can_MainFunction_Read_0(void) {
     MsgCode = CAN_0.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
     MsgId = CAN_0.MB[4].ID.B.ID_STD;
     MsgLen = CAN_0.MB[4].CS.B.DLC;
-    for (i = 0; i < MsgData; i++) {
+    for (i = 0; i < MsgLen; i++) {
         MsgData[i] = CAN_0.MB[4].DATA.B[i];
     }
     MsgTs = CAN_0.MB[4].CS.B.TIMESTAMP;
@@ -179,7 +183,7 @@ void Can_MainFunction_Read_0(void) {
 void Can_MainFunction_Read_1(void) {
     uint8 i;
     uint32 timer;
-    while (CAN_1.IFLAG1.B.BUF4TO1I != 8) {}; /* Wait for CAN 1 MB 4 flag */
+    while (CAN_1.IFLAG1.B.BUF4TO1I != 8); /* Wait for CAN 1 MB 4 flag */
     MsgCode = CAN_1.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
     MsgId = CAN_1.MB[4].ID.B.ID_STD;
     MsgLen = CAN_1.MB[4].CS.B.DLC;
@@ -194,6 +198,7 @@ void Can_MainFunction_Read_1(void) {
 
 void Can_Init(const Can_ConfigType *Config) {
     /* Do initial configuration of layer here */
+    Can_MCSysInit();
 }
 
 void Can_InitController(uint8 controller, const Can_ControllerType *config) {
@@ -239,19 +244,6 @@ void Can_InitController(uint8 controller, const Can_ControllerType *config) {
             while (CAN_1.MCR.B.FRZACK & CAN_1.MCR.B.NOTRDY); /* Wait to clear */
             break;
     }
-}
-
-Can_ReturnType Can_SetControllerMode(uint8 Controller, Can_StateTransitionType transition) {
-    // Turn on off controller here depending on transition
-    return E_OK;
-}
-
-Can_ReturnType Can_Write(Can_HwHandleType Hth, Can_PduType *pduInfo) {
-
-    return E_OK;
-}
-
-void Can_DisableControllerInterrupts(uint8 controller) {
 }
 
 void Can_EnableControllerInterrupts(uint8 controller) {

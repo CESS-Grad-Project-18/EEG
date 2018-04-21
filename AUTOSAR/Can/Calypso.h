@@ -510,6 +510,7 @@ struct CAN_0_tag {
   CAN_0_IFLAG3_tag IFLAG3;             /* Interrupt Flags 3 Register */
   uint8_t CAN_0_reserved4[8];
   CAN_0_RAMn_tag RAMn[384];            /* Embedded RAM */
+  //CAN_0_RAMn_tag MB[384];               /* Embedded RAM */
   uint8_t CAN_0_reserved5[512];
   CAN_0_RXIMR_tag RXIMR[96];           /* Rx Individual Mask Registers */
   uint8_t CAN_0_reserved6[256];
