@@ -51,7 +51,7 @@ typedef struct PduRGeneral {
 
 typedef enum PduRDestPduDataProvision {
 	PDUR_DIRECT,
-	PDUR_TRIGGERTRANSMIT
+	PDUR_TRIGGER_TRANSMIT
 } PduRDestPduDataProvision;
 
 typedef struct PduRSrcPdu {

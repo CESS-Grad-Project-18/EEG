@@ -3,7 +3,7 @@
 
 #include "../PduR/PduR.h"
 
-void PduR_CanIfRxIndication(PduIdType CanRxPduId, const uint8* CanSduPtr); /* SID: 0x01 */
-void PduR_CanIfTxConfirmation(PduIdType CanTxPduId); /* SID: 0x02 */
+void PduR_CanIfRxIndication(PduIdType PduId, const PduInfoType* PduInfo); /* SID: 0x01 */
+void PduR_CanIfTxConfirmation(PduIdType TxPduId); /* SID: 0x02 */
 
 #endif /* PDUR_CANIF_H */

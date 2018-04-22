@@ -16,6 +16,7 @@
 #define PDUR_E_CONFIG_PTR_INVALID 		0x06
 #define PDUR_E_INVALID_REQUEST 			0x01
 #define PDUR_E_PDU_ID_INVALID			0x02
+#define PDUR_E_PDU_INSTANCE_LOST			0x0555
 #define PDUR_E_TP_TX_REQ_REJECTED		0x03
 #define PDUR_E_DATA_PTR_INVALID			0x05
 #define PDUR_E_BUFFER_ERROR				0x06
@@ -38,7 +39,6 @@ uint32 PduR_GetConfigurationId(void); /* SID: 0x18 */
 
 
 /* CAN Interface functions */
-void PduR_CanIfRxIndication(PduIdType CanRxPduId, const uint8* CanSduPtr); /* SID: 0x01 */
 void PduR_CanIfTxConfirmation(PduIdType CanTxPduId); /* SID: 0x02 */
 
 /* COM */
