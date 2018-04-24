@@ -405,7 +405,7 @@ void Com_WriteData(uint8 *pdu, uint8 *pduSignalMask, const uint8 *signalDataPtr,
 boolean Com_BufferLocked(PduIdType id) {
 	//imask_t state;
 	//Irq_Save(state);
-	boolean locked = Com_BufferState[id].isLocked;
+	boolean locked = Com_BufferPduState[id].isLocked;
 	//Irq_Restore(state);
 	if (locked) {
 		return TRUE;

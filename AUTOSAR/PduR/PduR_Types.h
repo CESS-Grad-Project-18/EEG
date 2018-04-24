@@ -24,8 +24,14 @@ typedef struct PduRTxBuffer {
 	uint8 Depth;
 } PduRTxBuffer;
 
+typedef struct Pdu {
+	ComIPdu_type ComPduIdRef;
+	struct PduRSrcPdu *PduRSrcPduRef;
+	struct PduRDestPdu *PduRDestPduRef;
+	CanIf_RxPduCfgType CanIfRxPduRef;
+} Pdu;
+
 typedef struct PduRBswModule PduRBswModule;
-typedef struct Pdu Pdu;
 
 struct PduRBswModule{
 	PduRBswModule* PduRBswModuleRef;
@@ -54,11 +60,13 @@ typedef enum PduRDestPduDataProvision {
 	PDUR_TRIGGER_TRANSMIT
 } PduRDestPduDataProvision;
 
-typedef struct PduRSrcPdu {
+struct PduRSrcPdu {
 	uint16 HandleId;
 	// boolean PduRSrcPduUpTxConf;
-	Pdu* SrcPduRef;
-} PduRSrcPdu;
+	//Pdu* SrcPduRef;
+	Pdu *SrcPduRef;
+};
+
 
 typedef struct PduRDefaultValueElement {
 	uint8 PduRDefaultValueElement;
@@ -83,27 +91,30 @@ typedef struct PduRTxBufferTable {
 	PduRTxBuffer* PduRTxBuffer;
 } PduRTxBufferTable;
 
-typedef struct PduRDestPdu {
+struct PduRDestPdu {
 	PduRDestPduDataProvision DataProvision;
 	uint16 PduRDestPduHandleId;
 	uint16 PduRTpThreshold;
 	boolean PduRTransmissionConfirmation;
 	Pdu* DestPduRef;
+	//struct Pdu *DestPduRef;
 	PduRTxBuffer* TxBufferRef;
 	PduRDefaultValue PduRDefaultValue;
-} PduRDestPdu;
+};
 
+typedef struct PduRSrcPdu PduRSrcPdu;
+typedef struct PduRDestPdu PduRDestPdu;
 
 typedef struct PduRRoutingPathGroup {
 	boolean PduRIsEnabledAtInit;
 	uint16 PduRRoutingPathGroupId;
-	PduRDestPdu* PduRDestPduRef;
+	PduRDestPdu *PduRDestPduRef;
 } PduRRoutingPathGroup;
 
 typedef struct PduRRoutingPath {
 	uint8 SduLength;
-	PduRDestPdu* PduRDestPdu;
-	PduRSrcPdu PduRSrcPdu;
+	PduRDestPdu *PduRDestPdu;
+	PduRSrcPdu *PduRSrcPdu;
 } PduRRoutingPath;
 
 typedef struct PduRRoutingTable {
@@ -121,14 +132,7 @@ typedef struct PduRRoutingTables {
 	PduRTxBufferTable PduRTxBufferTable;
 } PduRRoutingTables;
 
-struct Pdu {
-	ComIPdu_type ComPduIdRef;
-	PduRSrcPdu PduRSrcPduRef;
-	PduRDestPdu PduRDestPduRef;
-	CanIf_RxPduCfgType CanIfRxPduRef;
-};
-
-typedef struct {
+typedef struct PduR_PBConfigType{
 	uint16 PduR_PBConfigIdType;
 	uint16 PduR_RoutingPathGroupIdType;
 	PduR_StateType PduR_StateType;

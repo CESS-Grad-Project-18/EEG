@@ -10,6 +10,7 @@
 #include "CanIf_Types.h"
 #include "../Can/Can_GeneralTypes.h"
 #include "../Can/Can_Cfg.h"
+#include "PduR_CanIf.h"
 
 #define CanIf_GetChannelCtrl(channel) (CanIf_ConfigPtr->ChannelToControllerMap[channel])
 
@@ -524,10 +525,11 @@ void CanIf_RxIndication(const Can_HwType* Mailbox, const PduInfoType* PduInfoPtr
 
        /* entry->CanIfRxUserType */
           /* Send Can frame to PDU router */
-        		PduInfoType pduInfo;
-        		pduInfo.SduLength = entry->CanIfCanRxPduIdDlc;
-        		pduInfo.SduDataPtr = (uint8 *)entry->PduIdRef; /* TODO: Check*/
-            	PduR_CanIfRxIndication(entry->CanIfCanRxPduId,pduInfo.SduDataPtr);
+        		PduInfoType* pduInfo;
+        		pduInfo->SduLength = entry->CanIfCanRxPduIdDlc;
+        		pduInfo->SduDataPtr = (uint8 *)entry->PduIdRef; /* TODO: Check*/
+            	//PduR_CanIfRxIndication(entry->CanIfCanRxPduId, pduInfo.SduDataPtr);
+                PduR_CanIfRxIndication(entry->CanIfCanRxPduId, pduInfo);
     }
 
     entry++;

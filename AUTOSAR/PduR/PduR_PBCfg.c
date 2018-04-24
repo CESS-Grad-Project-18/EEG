@@ -2,6 +2,7 @@
 #include "../CanIf/CanIf.h"
 #include "../COM/Com.h"
 #include "../COM/Com_PBCfg.h"
+#include "PduR_PBCfg.h"
 
 const PduRDestPdu PduR_PduRDestination[] = {
     {
@@ -20,13 +21,13 @@ const PduRDestPdu PduR_PduRDestination[] = {
 
 };
 
-const PduRDestPdu * const EmotionSignal_PduRDestinations[] =
-{
-	&PduR_PduRDestination[0]
+const PduRDestPdu * const EmotionSignal_PduRDestinations[] = {
+	&PduR_PduRDestination[0],
+    NULL
 };
-const PduRDestPdu * const SleepSignal_PduRDestinations[] =
-{
-	&PduR_PduRDestination[1]
+const PduRDestPdu * const SleepSignal_PduRDestinations[] = {
+	&PduR_PduRDestination[1],
+    NULL
 };
 
 const PduRRoutingPath EmotionSignal_PduRRoutingPath = {
