@@ -9,7 +9,7 @@ import math
 
 
 # reader = Reader.DeapReader()
-# data, labels = reader.read(start = 1, end = 10)
+# data, labels = reader.read(start = 1, end =  10)
 reader = Reader.AaReader()
 data, labels = reader.read([["NOUR_ABDELAAL_REC_0.csv", "NOUR_ABDELAAL_REC_1.csv",
 							 "NOUR_ABDELAAL_REC_2.csv", "NOUR_ABDELAAL_REC_3.csv"]], ["NOUR_ABDELAAL_LABELS1.dat"])
@@ -49,8 +49,7 @@ print("PD:",processed_data.shape)
 print("PL:", processed_labels.shape)
 
 for subject_data, subject_label in zip(processed_data, processed_labels):
-	print("-------------------------------aaa----------------------")
-	clf = CLFs.SingleClass(subject_data, subject_label)
+	clf = CLFs.MultiClass(subject_data, subject_label)
 	clf.train()
 	clf.predict()
 
