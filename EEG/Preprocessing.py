@@ -1,7 +1,8 @@
 import pickle
 import numpy as np
 import math
-from scipy.signal import lfilter, firwin as fir1
+from scipy import nanmean
+from scipy.signal import lfilter, decimate, firwin as fir1
 from scipy.fftpack import rfft, fftfreq, fft
 import warnings
 calcMethod = "DE"
@@ -33,6 +34,27 @@ def CARFilter(channel_data):
 				car_channel = np.add(car_channel, channel_data[j])
 		car_channel_data[i] = channel_data[i] - np.divide(car_channel, float(data_size - 1))
 	return car_channel_data
+
+def decimate_signal(signal, old_sample_rate = 256, new_sample_rate = 128, ds_type = 'Mean'):
+    """ Function that downsamples signal.
+    
+    :param signal: list including decimated_signal with sample signal
+    :param sample_rate: desired sample_rate
+    :param ds_type: Type of interpolating used for downsampling. (Mean or IIR)
+    :returns decimated_signal: downsampled signal, in same format as input signal
+    """
+
+    decimated_signal = []
+    SR = int(np.round(float(old_sample_rate)/float(new_sample_rate)))
+    if ds_type == 'Mean':
+        for sample in signal:
+            pad_size = int(math.ceil(float(sample.size) / SR) * SR - sample.size)
+            s_padded = np.append(sample, np.zeros(pad_size) * np.NaN)
+            s_new = nanmean(s_padded.reshape(-1, SR), axis=1)
+            decimated_signal = np.append(decimated_signal, s_new)
+    elif ds_type == 'IIR':
+        decimated_signal = decimate(signal, SR)
+    return decimated_signal
 
 def FilterData(data,lower,higher):
     Fs = 128.0
