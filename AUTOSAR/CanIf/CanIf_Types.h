@@ -110,13 +110,14 @@ typedef enum CanIf_PublicHandleType {
 
 
 typedef enum CanIf_ChannelIdType {
+	CANIF_CHANNEL_1 = 0,
+	CANIF_CHANNEL_2 = 1,
+	CANIF_CHANNEL_CNT = 2,
 	CANIF_CanIfCtrlCfg,
-	CANIF_CHANNEL_CNT = 2
 } CanIf_ChannelIdType;
 
 
 typedef enum Can_HRHType {
-	HWObj_1,
 	TX,
 	RX,
 	NUM_OF_HRHS
@@ -124,6 +125,7 @@ typedef enum Can_HRHType {
 
 
 typedef enum Can_HTHType {
+	HWObj_1,
 	HWObj_2,
 	NUM_OF_HTHS
 } Can_HTHType;

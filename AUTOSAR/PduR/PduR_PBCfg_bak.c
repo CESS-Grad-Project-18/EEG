@@ -34,11 +34,11 @@ const PduRDestPdu PduR_PduRDestination[] = {
 
 };
 
-const PduRDestPdu * const EmotionSignal_PduRDestinations[] = {
+const PduRDestPdu * EmotionSignal_PduRDestinations[] = {
 	&PduR_PduRDestination[0],
     NULL
 };
-const PduRDestPdu * const SleepSignal_PduRDestinations[] = {
+const PduRDestPdu * SleepSignal_PduRDestinations[] = {
 	&PduR_PduRDestination[1],
     NULL
 };
@@ -46,27 +46,32 @@ const PduRDestPdu * const SleepSignal_PduRDestinations[] = {
 const PduRRoutingPath EmotionSignal_PduRRoutingPath = {
     .SduLength =  1,
     //.SrcPduId =  COM_SIGNAL_ID_EMOTIONSIGNAL,
-    .PduRDestPdu =  EmotionSignal_PduRDestinations
+    .PduRDestPdu =  *EmotionSignal_PduRDestinations
 };
 
 const PduRRoutingPath SleepSignal_PduRRoutingPath = {
     .SduLength =  1,
     //.SrcPduId =  CANIF_ID_SleepSignal,
-    .PduRDestPdu =  SleepSignal_PduRDestinations
+    .PduRDestPdu =  *SleepSignal_PduRDestinations
 };
 
-const PduRRoutingPath * const PduR_RoutingPaths[] = {
+const PduRRoutingPath * PduR_RoutingPaths[] = {
 	&EmotionSignal_PduRRoutingPath,
 	&SleepSignal_PduRRoutingPath,
     NULL
 };
 
-const PduRRoutingTable PduR_RoutingTable = {
-		.PduRRoutingPath = PduR_RoutingPaths,
+const PduRRoutingTable PduR_RoutingTable[] = {
+		{
+			.PduRRoutingPath = *PduR_RoutingPaths,
+		},
+		{
+			.PduRRoutingPath = NULL
+		}
 };
 
 const PduR_PBConfigType PduR_Config = {
     .PduR_PBConfigIdType =  0,
-    .RoutingTable =  &PduR_RoutingTable,
+    .RoutingTable =  PduR_RoutingTable,
 
 };

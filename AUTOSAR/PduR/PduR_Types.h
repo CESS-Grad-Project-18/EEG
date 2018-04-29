@@ -25,7 +25,7 @@ typedef struct PduRTxBuffer {
 } PduRTxBuffer;
 
 typedef struct Pdu {
-	ComIPdu_type ComPduIdRef;
+	ComIPdu_type *ComPduIdRef;
 	struct PduRSrcPdu *PduRSrcPduRef;
 	struct PduRDestPdu *PduRDestPduRef;
 	CanIf_RxPduCfgType CanIfRxPduRef;
@@ -96,7 +96,7 @@ struct PduRDestPdu {
 	uint16 PduRDestPduHandleId;
 	uint16 PduRTpThreshold;
 	boolean PduRTransmissionConfirmation;
-	Pdu* DestPduRef;
+	const Pdu* DestPduRef;
 	//struct Pdu *DestPduRef;
 	PduRTxBuffer* TxBufferRef;
 	PduRDefaultValue PduRDefaultValue;
@@ -113,12 +113,12 @@ typedef struct PduRRoutingPathGroup {
 
 typedef struct PduRRoutingPath {
 	uint8 SduLength;
-	PduRDestPdu *PduRDestPdu;
-	PduRSrcPdu *PduRSrcPdu;
+	const PduRDestPdu * const * PduRDestPdu;
+	const PduRSrcPdu * const * PduRSrcPdu;
 } PduRRoutingPath;
 
 typedef struct PduRRoutingTable {
-	PduRRoutingPath* PduRRoutingPath;
+	const PduRRoutingPath * const * PduRRoutingPath;
 } PduRRoutingTable;
 
 typedef struct PduRRoutingTables {

@@ -12,15 +12,18 @@
 /* The state of the PDU router. */
 
 
-Std_ReturnType PduR_RouteTransmit(const PduRDestPdu *Pdu, const PduInfoType *pduInfo) {
+Std_ReturnType PduR_RouteTransmit(const PduRDestPdu * const Pdu, const PduInfoType *pduInfo) {
 	int err = 0;
 	Std_ReturnType retVal = E_NOT_OK;
-	switch (Pdu->DestPduRef->ComPduIdRef.IPduOutgoingId) {
+	//switch (Pdu->DestPduRef->ComPduIdRef->IPduOutgoingId) {
+	switch (Pdu->PduRDestPduHandleId) {
 	case 0:
-		retVal = CanIf_Transmit(Pdu->DestPduRef->ComPduIdRef.IPduOutgoingId, pduInfo);
+		//retVal = CanIf_Transmit(Pdu->DestPduRef->ComPduIdRef->IPduOutgoingId, pduInfo);
+		retVal = CanIf_Transmit(Pdu->PduRDestPduHandleId, pduInfo);
 		break;
 	case 1:
-		Com_RxIndication(Pdu->DestPduRef->ComPduIdRef.IPduOutgoingId, pduInfo);
+		//Com_RxIndication(Pdu->DestPduRef->ComPduIdRef->IPduOutgoingId, pduInfo);
+		Com_RxIndication(Pdu->PduRDestPduHandleId, pduInfo);
 		break;
 	default:
 		retVal = E_NOT_OK;
@@ -38,7 +41,7 @@ void PduR_RouteTriggeredTrasmit(const PduRDestPdu *Pdu, const PduInfoType *pduIn
 	/* @req PDUR661 */
 	/* PDUR shall module shall copy the return value from the Com_TriggerTransmit to the lower layer module */
 	Std_ReturnType ret = E_OK;
-	if(!memcpy(Pdu->DestPduRef->ComPduIdRef.ComIPduDataPtr, pduInfo->SduDataPtr, pduInfo->SduLength)){ /* TODO: check */
+	if(!memcpy(Pdu->DestPduRef->ComPduIdRef->ComIPduDataPtr, pduInfo->SduDataPtr, pduInfo->SduLength)){ /* TODO: check */
 		ret |= E_NOT_OK;
 	}
 	PduR_RouteTransmit(Pdu, pduInfo);
@@ -85,9 +88,10 @@ Std_ReturnType PduR_ComTransmit(PduIdType ComTxPduId, const PduInfoType *PduInfo
 	/* When source upper layer module callse PduR_ComTransmit, tge PDY router shall call CanIf_Transmit for each dest comm*/
 	uint8 i;
 	Std_ReturnType retVal = E_OK;
-	const PduRRoutingPath *route = &PduRConfig->RoutingTable->PduRRoutingPath[ComTxPduId];
-	for (i = 0; &route->PduRDestPdu[i] != NULL ; i++) {
-		const PduRDestPdu * DestPdu = &route->PduRDestPdu[i];
+	//const PduRRoutingPath *route = PduRConfig->RoutingTable->PduRRoutingPath[ComTxPduId];
+	const PduRRoutingPath * const route = PduRConfig->RoutingTable->PduRRoutingPath[ComTxPduId];
+	for (i = 0; route->PduRDestPdu[i] != NULL ; i++) {
+		const PduRDestPdu * const DestPdu = route->PduRDestPdu[i];
 		retVal |= PduR_RouteTransmit(DestPdu, PduInfoPtr);
 	}
 	return retVal;
@@ -101,10 +105,11 @@ void PduR_CanIfRxIndication(PduIdType PduId, const PduInfoType* PduInfo){
 	/* @req PDUR783 */
 	/* @req PDUR683 */
 	uint8 i;
-	const PduRRoutingPath *route = &PduRConfig->RoutingTable->PduRRoutingPath[PduId];
+	//const PduRRoutingPath *route = &PduRConfig->RoutingTable->PduRRoutingPath[PduId];
+	const PduRRoutingPath * const route = PduRConfig->RoutingTable->PduRRoutingPath[PduId];
 	for (i = 0; &route->PduRDestPdu[i] != NULL; i++) {
 		const PduRDestPdu * DestPdu = &route->PduRDestPdu[i];
-		if(DestPdu->DestPduRef->ComPduIdRef.IPduOutgoingId == 0){
+		if(DestPdu->DestPduRef->ComPduIdRef->IPduOutgoingId == 0){
 			if(DestPdu->DataProvision == PDUR_DIRECT){
 				PduR_RouteTransmit(DestPdu, PduInfo);
 			} else if (DestPdu->DataProvision == PDUR_TRIGGER_TRANSMIT){

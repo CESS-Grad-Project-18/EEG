@@ -44,7 +44,7 @@ void CanIf_Init(const CanIf_ConfigType *ConfigPtr){
     CanIf_Global.channelData[i].ControllerMode = CANIF_CS_STOPPED;
     CanIf_Global.channelData[i].PduChannelMode = CANIF_OFFLINE;
     /* @req CAN*/
-    CanIf_PreInit_InitController(i, CanIf_ConfigPtr->ChannelDefaultConfIndex[i]);
+    //CanIf_PreInit_InitController(i, CanIf_ConfigPtr->ChannelDefaultConfIndex[i]);
   }
   CanIf_Global.initRun = TRUE;
 }
@@ -316,7 +316,7 @@ Std_ReturnType CanIf_Transmit(PduIdType CanIfTxSduId, const PduInfoType *CanIfTx
 
   txEntry = CanIf_FindTxPduEntry(CanIfTxSduId);
 
-  if (txEntry == 0){
+  if (txEntry == NULL){
     Det_ReportError(CANIF_MODULE_ID, 0, CANIF_TRANSMIT_ID, CANIF_E_INVALID_TXPDUID);
     return E_NOT_OK;
   }

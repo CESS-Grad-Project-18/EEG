@@ -13,9 +13,15 @@ const CanIf_HthCfgType CanIfHthConfigData_CanIfInitHohCfg[] =
 {
 	{ 
     	.CanIfHthType 				= BASIC_HOH,
-    	.CanIfCanControllerIdRef 	= CANIF_CanIfCtrlCfg,
-    	.CanIfHthIdSymRef 			= TX, /* ? */
+    	.CanIfCanControllerIdRef 	= CANIF_CHANNEL_1,
+    	.CanIfHthIdSymRef 			= HWObj_1, /* ? */
     	.CanIf_EOL 				    = TRUE,
+	},
+	{
+		.CanIfHthType 				= BASIC_HOH,
+		.CanIfCanControllerIdRef 	= CANIF_CHANNEL_2,
+		.CanIfHthIdSymRef 			= HWObj_2, /* TX? */
+		.CanIf_EOL 				    = TRUE,
 	},
 };
 
@@ -55,6 +61,7 @@ const CanIf_TxPduCfgType CanIfTxPduConfigData[] = {
     	.CanIfTxPduIdCanIdType 		 = STANDARD_CAN,
     	.CanIfUserTxConfirmation 	 = NULL, /* PDUR_CALLOUT */
     	.CanIfTxPduBufferRef		 = &CanIfBufferCfgData[0],
+    	.CanIfCanTxPduHthRef		 = &CanIfHthConfigData_CanIfInitHohCfg[0],
     	.PduIdRef 					 = NULL,
 	},
 	{
@@ -66,6 +73,7 @@ const CanIf_TxPduCfgType CanIfTxPduConfigData[] = {
     	.CanIfTxPduIdCanIdType 		 = STANDARD_CAN,
     	.CanIfUserTxConfirmation 	 = NULL, /* PDUR_CALLOUT */
     	.CanIfTxPduBufferRef		 = &CanIfBufferCfgData[0],
+    	.CanIfCanTxPduHthRef		 = &CanIfHthConfigData_CanIfInitHohCfg[0],
     	.PduIdRef 					 = NULL,
 	},
 };
