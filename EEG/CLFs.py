@@ -13,7 +13,7 @@ class BaseClf(ABC):
 		self.list_of_clfs = [sklearn.svm.SVC(kernel="poly", degree=1),
 							sklearn.svm.LinearSVC(),
 
-							sklearn.naive_bayes.MultinomialNB(),
+							#sklearn.naive_bayes.MultinomialNB(),
 							sklearn.naive_bayes.GaussianNB(),
 							sklearn.naive_bayes.BernoulliNB(),
 							
@@ -178,7 +178,9 @@ class MultiClass(BaseClf):
 
 class SingleClass(BaseClf):
 
-	def train(self):
+	def train(self, split = True):
+		self.features = np.asarray(self.features)
+		self.labels = np.asarray(self.labels)
 		print("features_shape:", self.features.shape)
 		print("labels_shape:", self.labels.shape)
 
@@ -189,8 +191,14 @@ class SingleClass(BaseClf):
 				modified_features.append(d)
 				modified_labels.append(l)
 		self.features, self.labels = modified_features, modified_labels
-		highest_acc, highest_clf = 0, None
-		training_len = int(0.75 * len(self.features))
+
+		if split:
+				training_to_test_p = 0.75
+		else:
+				training_to_test_p = 1
+		
+		training_len = int(training_to_test_p * len(self.features))
+
 		print("Number of training example:", training_len)
 		features_train = np.asarray( self.features[:training_len] )
 		labels_train   = np.asarray( self.labels[:training_len] )
@@ -207,21 +215,27 @@ class SingleClass(BaseClf):
 			clf.fit(features_train, labels_train)
 
 
-	def predict(self):
+	def predict(self, features_test = None, labels_test = None):
+		if features_test != None:
+			self.features_test = features_test
+			self.labels_test = labels_test
+		self.features_test = np.asarray(self.features_test)
+		self.labels_test = np.asarray(self.labels_test)
+		print("predicting with", "features", self.features_test.shape, "labels", self.labels_test.shape )
+		highest_acc, highest_clf = 0, None
 		for clf in self.list_of_clfs:
-			# print("Clf name:", clf)
-			highest_acc, highest_clf = 0, None
+			print("Clf name:", clf)
 			c = 0
 			for prediction, actual_label in zip(clf.predict(self.features_test), self.labels_test):
-				# print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
+				print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
 				if(prediction == actual_label):
 					c+=1
 
 			accuracy = c/len(self.labels_test)
-			# print(c, "Correct out of ", 
-		 #  		len(self.labels_test),
-			#   	" Percesion: " ,
-			#   	accuracy * 100 )
+			print(c, "Correct out of ", 
+		  		len(self.labels_test),
+			  	" Percesion: " ,
+			  	accuracy * 100 )
 			if(accuracy >= highest_acc):
 				highest_acc = accuracy
 				highest_clf = clf
