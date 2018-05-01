@@ -208,20 +208,20 @@ class SingleClass(BaseClf):
 
 
 	def predict(self):
+		highest_acc, highest_clf = 0, None
 		for clf in self.list_of_clfs:
-			# print("Clf name:", clf)
-			highest_acc, highest_clf = 0, None
+			print("Clf name:", clf)
 			c = 0
 			for prediction, actual_label in zip(clf.predict(self.features_test), self.labels_test):
-				# print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
+				print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
 				if(prediction == actual_label):
 					c+=1
 
 			accuracy = c/len(self.labels_test)
-			# print(c, "Correct out of ", 
-		 #  		len(self.labels_test),
-			#   	" Percesion: " ,
-			#   	accuracy * 100 )
+			print(c, "Correct out of ", 
+		  		len(self.labels_test),
+			  	" Percesion: " ,
+			  	accuracy * 100 )
 			if(accuracy >= highest_acc):
 				highest_acc = accuracy
 				highest_clf = clf
