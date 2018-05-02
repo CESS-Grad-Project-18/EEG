@@ -1,6 +1,7 @@
 import pickle
 import numpy as np
 import math
+from scipy import nanmean
 from scipy.signal import lfilter, firwin as fir1
 from scipy.fftpack import rfft, fftfreq, fft
 import warnings
