@@ -14,8 +14,12 @@ import math
 # # aa_data, aa_labels = aa_reader.read([["NOUR_ABDELAAL_REC_0.csv", "NOUR_ABDELAAL_REC_1.csv",
 # # 							 "NOUR_ABDELAAL_REC_2.csv", "NOUR_ABDELAAL_REC_3.csv"]], ["NOUR_ABDELAAL_LABELS1.dat"])
 
-# aa_data, aa_labels = aa_reader.read([["OSAKA_REC0.csv", "OSAKA_REC1.csv",
-# 							 "OSAKA_REC2.csv", "OSAKA_REC3.csv"]], ["OSAKA_LABELS.dat"])
+
+aa_data, aa_labels = aa_reader.read([["OSAKA_REC0.csv", "OSAKA_REC1.csv",
+							 "OSAKA_REC2.csv", "OSAKA_REC3.csv"]], ["OSAKA_LABELS.dat"])
+aa_data = car_filter(aa_data)
+aa_data = decimate_signal(aa_data)
+#aa_data = decimate_signal(aa_data, dsType='IIR')
 
 # # data, labels = reader.read([["NOUR_ABDELAAL_REC_0.csv", "NOUR_ABDELAAL_REC_1.csv",
 # # 							 "NOUR_ABDELAAL_REC_2.csv", "NOUR_ABDELAAL_REC_3.csv"],
