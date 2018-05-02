@@ -8,58 +8,58 @@ from sklearn.preprocessing import RobustScaler
 import math
 
 
-# deap_reader = Reader.DeapReader()
-# deap_data, deap_labels = deap_reader.read([1])
-# aa_reader = Reader.AaReader()
-# # aa_data, aa_labels = aa_reader.read([["NOUR_ABDELAAL_REC_0.csv", "NOUR_ABDELAAL_REC_1.csv",
-# # 							 "NOUR_ABDELAAL_REC_2.csv", "NOUR_ABDELAAL_REC_3.csv"]], ["NOUR_ABDELAAL_LABELS1.dat"])
+deap_reader = Reader.DeapReader()
+deap_data, deap_labels = deap_reader.read([1])
+aa_reader = Reader.AaReader()
+# aa_data, aa_labels = aa_reader.read([["NOUR_ABDELAAL_REC_0.csv", "NOUR_ABDELAAL_REC_1.csv",
+# 							 "NOUR_ABDELAAL_REC_2.csv", "NOUR_ABDELAAL_REC_3.csv"]], ["NOUR_ABDELAAL_LABELS1.dat"])
 
 
 aa_data, aa_labels = aa_reader.read([["OSAKA_REC0.csv", "OSAKA_REC1.csv",
 							 "OSAKA_REC2.csv", "OSAKA_REC3.csv"]], ["OSAKA_LABELS.dat"])
-aa_data = car_filter(aa_data)
-aa_data = decimate_signal(aa_data)
+aa_data = Preprocessing.car_filter(aa_data)
+aa_data = Preprocessing.decimate_signal(aa_data)
 #aa_data = decimate_signal(aa_data, dsType='IIR')
 
-# # data, labels = reader.read([["NOUR_ABDELAAL_REC_0.csv", "NOUR_ABDELAAL_REC_1.csv",
+# #data, labels = reader.read([["NOUR_ABDELAAL_REC_0.csv", "NOUR_ABDELAAL_REC_1.csv",
 # # 							 "NOUR_ABDELAAL_REC_2.csv", "NOUR_ABDELAAL_REC_3.csv"],
 # # 							 ["OSAKA_REC0.csv", "OSAKA_REC1.csv",
 # # 							 "OSAKA_REC2.csv", "OSAKA_REC3.csv"]], ["NOUR_ABDELAAL_LABELS1.dat", "OSAKA_LABELS.dat"])
 
-# sampling_rates = [128 for _ in deap_data ]
-# sampling_rates.append(271)
-# sampling_rates.append(206)
+sampling_rates = [128 for _ in deap_data ]
+sampling_rates.append(271)
+sampling_rates.append(206)
 
-# video_lengths = [63 for _ in deap_data]
-# video_lengths.append(4 * 60)
-# video_lengths.append(4 * 60)
-
-
-# channel_nos = [40 for _ in deap_data]
-# channel_nos.append(14)
-# channel_nos.append(14)
+video_lengths = [63 for _ in deap_data]
+video_lengths.append(4 * 60)
+video_lengths.append(4 * 60)
 
 
-# print("deap data shape", deap_data.shape)
-# print("deap labels shape", deap_labels.shape)
-
-# print("aa data shape", aa_data.shape)
-# print("aa labels shape", aa_labels.shape)
-# processed_data, processed_labels = [], []
+channel_nos = [40 for _ in deap_data]
+channel_nos.append(14)
+channel_nos.append(14)
 
 
-# data = deap_data.tolist() + aa_data.tolist()
-# labels = deap_labels.tolist() + aa_labels.tolist()
+print("deap data shape", deap_data.shape)
+print("deap labels shape", deap_labels.shape)
 
-# print("raw labels", len(labels), len(labels[0]), len(labels[0][0]))
-# for i, subject in enumerate(data):
-# 	processed_data.append(Preprocessing.processReadings(subject, sampling_rates[i], video_lengths[i], channel_nos[i]))
-# 	processed_labels.append(Preprocessing.processLabels(labels[i]))
+print("aa data shape", aa_data.shape)
+print("aa labels shape", aa_labels.shape)
+processed_data, processed_labels = [], []
 
 
-# processed_data, processed_labels = np.asarray(processed_data), np.asarray(processed_labels)
-# pickle.dump(processed_data, open("saved_data", "wb"))
-# pickle.dump(processed_labels, open("saved_labels", "wb"))
+data = deap_data.tolist() + aa_data.tolist()
+labels = deap_labels.tolist() + aa_labels.tolist()
+
+print("raw labels", len(labels), len(labels[0]), len(labels[0][0]))
+for i, subject in enumerate(data):
+	processed_data.append(Preprocessing.processReadings(subject, sampling_rates[i], video_lengths[i], channel_nos[i]))
+	processed_labels.append(Preprocessing.processLabels(labels[i]))
+
+
+processed_data, processed_labels = np.asarray(processed_data), np.asarray(processed_labels)
+pickle.dump(processed_data, open("saved_data", "wb"))
+pickle.dump(processed_labels, open("saved_labels", "wb"))
 
 deap_data = [1]
 processed_data = pickle.load(open("saved_data", "rb"))
