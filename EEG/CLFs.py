@@ -12,6 +12,9 @@ class BaseClf(ABC):
 	def __init__(self, features, labels):
 		self.list_of_clfs = [sklearn.svm.SVC(kernel="poly", degree=1),
 							sklearn.svm.LinearSVC(),
+							sklearn.svm.SVC( degree=1),
+							sklearn.svm.SVC( ),
+
 
 							#sklearn.naive_bayes.MultinomialNB(),
 							sklearn.naive_bayes.GaussianNB(),
@@ -50,8 +53,7 @@ class MultiClass(BaseClf):
 		if(valence==1 and arousal == 1):
 			return 1
 
-
-	def train(self):
+	def divideData(self, features, labels, percentage):
 		thv = 0
 		tlv = 0
 		tha = 0
@@ -59,7 +61,6 @@ class MultiClass(BaseClf):
 		ctotal = 0
 		carousal = 0
 		cvalence = 0
-		percentage = 0.75
 		num=0
 		hv=0
 		lv=0
@@ -71,75 +72,84 @@ class MultiClass(BaseClf):
 		countha=0
 		countla=0
 
-		self.valencedata_ot = []
-		self.valencelabels_ot = []
-		self.valencetest_ot = []
-		self.valencetestlabels_ot = []
 
-		self.arousaldata_ot = []
-		self.arousallabels_ot = []
-		self.arousaltest_ot = []
-		self.arousaltestlabels_ot = []
+		valencedata_ot = []
+		valencelabels_ot = []
+		valencetest_ot = []
+		valencetestlabels_ot = []
 
-		for i in range(len(self.labels)):
-			if self.labels[i]==1 or self.labels[i]==4:
+		arousaldata_ot = []
+		arousallabels_ot = []
+		arousaltest_ot = []
+		arousaltestlabels_ot = []
+
+		for i in range(len(labels)):
+			if labels[i]==1 or labels[i]==4:
 				countha+=1
 				tha+=1
-			if self.labels[i]==2 or self.labels[i]==3:
+			if labels[i]==2 or labels[i]==3:
 				countla+=1
 				tla+=1
-			if self.labels[i]==1 or self.labels[i]==2:
+			if labels[i]==1 or labels[i]==2:
 				counthv+=1
 				thv+=1
-			if self.labels[i]==3 or self.labels[i]==4:
+			if labels[i]==3 or labels[i]==4:
 				countlv+=1
 				tlv+=1
-		for i in range(len(self.labels)):
-			if (self.labels[i]==1 or self.labels[i]==4):
+		for i in range(len(labels)):
+			if (labels[i]==1 or labels[i]==4):
 				if (ha < countha * percentage):
-					self.arousaldata_ot.append(self.features[i])
-					self.arousallabels_ot.append(1)
+					arousaldata_ot.append(features[i])
+					arousallabels_ot.append(1)
 					##print(1)
 				else:
-					self.arousaltest_ot.append(self.features[i])
-					self.arousaltestlabels_ot.append(1)
+					arousaltest_ot.append(features[i])
+					arousaltestlabels_ot.append(1)
 					##print(1)
 				ha+=1
-			elif (self.labels[i]==2 or self.labels[i]==3):
+			elif (labels[i]==2 or labels[i]==3):
 				if(la< countla * percentage):
-					self.arousaldata_ot.append(self.features[i])
-					self.arousallabels_ot.append(0)
+					arousaldata_ot.append(features[i])
+					arousallabels_ot.append(0)
 					##print(0)
 				else:
-					self.arousaltest_ot.append(self.features[i])
-					self.arousaltestlabels_ot.append(0)
+					arousaltest_ot.append(features[i])
+					arousaltestlabels_ot.append(0)
 					##print(0)
 				la+=1
 
-		for i in range(len(self.labels)):
-			if self.labels[i]==1 or self.labels[i]==2:
+		for i in range(len(labels)):
+			if labels[i]==1 or labels[i]==2:
 				if (hv < counthv * percentage):
-					self.valencedata_ot.append(self.features[i])
-					self.valencelabels_ot.append(1)
+					valencedata_ot.append(features[i])
+					valencelabels_ot.append(1)
 					##print(1)
 				else:
-					self.valencetest_ot.append(self.features[i])
-					self.valencetestlabels_ot.append(1)
+					valencetest_ot.append(features[i])
+					valencetestlabels_ot.append(1)
 					##print(1)
 				hv+=1
-			elif self.labels[i]==3 or self.labels[i]==4:
+			elif labels[i]==3 or labels[i]==4:
 				
 				if(lv< countlv * percentage):
-					self.valencedata_ot.append(self.features[i])
-					self.valencelabels_ot.append(0)
+					valencedata_ot.append(features[i])
+					valencelabels_ot.append(0)
 					##print(0)
 				else:
-					self.valencetest_ot.append(self.features[i])
-					self.valencetestlabels_ot.append(0)
+					valencetest_ot.append(features[i])
+					valencetestlabels_ot.append(0)
 					##print(0)
 				lv+=1
 
-		print("Arousal train shape", len(self.arousaldata_ot))
+		return	valencedata_ot, valencelabels_ot, valencetest_ot, valencetestlabels_ot, arousaldata_ot, arousallabels_ot, arousaltest_ot, arousaltestlabels_ot
+
+	def train(self, percentage = 0.75):
+		self.valencedata_ot, self.valencelabels_ot, self.valencetest_ot, self.valencetestlabels_ot, self.arousaldata_ot, self.arousallabels_ot, self.arousaltest_ot, self.arousaltestlabels_ot = \
+		self.divideData(self.features, self.labels, percentage)
+
+		print("lengths = ", len(self.arousaldata_ot), len(self.arousaltest_ot), len(self.valencedata_ot), len(self.valencetest_ot))	
+		print("Total = ", len(self.arousaldata_ot) + len(self.arousaltest_ot) + len(self.valencedata_ot) + len(self.valencetest_ot))	
+		print("Arousal train shape", len(self.arousaldata_ot) )
 		self._arousal_clfs = deepcopy(self.list_of_clfs)
 		self._valence_clfs = deepcopy(self.list_of_clfs)
 		for i in range(len(self._arousal_clfs)):
@@ -147,21 +157,41 @@ class MultiClass(BaseClf):
 			self._valence_clfs[i].fit(np.array(self.valencedata_ot), np.array(self.valencelabels_ot))
 
 
-	def predict(self):
+	def predict(self, features_test = None, features_labels = None):
+		if( features_test != None):
+			_, _, self.valencetest_ot, self.valencetestlabels_ot, _, _, self.arousaltest_ot, self.arousaltestlabels_ot = \
+			self.divideData(features_test, features_labels, 0)
+
+
 		highest_perc_a, highest_clf_a, highest_perc_v, highest_clf_v = 0, None, 0, None
 		for a_clf, v_clf in zip(self._arousal_clfs, self._valence_clfs):
+			print("Clf name:", a_clf, v_clf)
+
 			c_a, c_v = 0.0, 0.0
 			pr_a_list = a_clf.predict(np.array(self.arousaltest_ot))
 			pr_v_list = v_clf.predict(np.array(self.valencetest_ot))
 
 			for pr_a, pr_v, label_a, label_v  in zip(pr_a_list, pr_v_list, 
 													self.arousallabels_ot, self.valencelabels_ot):
+				print("pred a:", pr_a, " correct:", label_a)
+				print("pred v:", pr_v, " correct:", label_v)
+
 				if pr_a == label_a:
 					c_a+=1
 				if pr_v == label_v:
 					c_v += 1
+
 			perc_a =  c_a / len(self.arousaltest_ot)
 			perc_v = c_v / len(self.valencetest_ot)
+
+			print(c_a, "Correct out of ", 
+		  		len(pr_a_list),
+			  	" Percesion: " ,
+			  	perc_a * 100 )
+			print(c_v, "Correct out of ", 
+		  		len(pr_v_list),
+			  	" Percesion: " ,
+			  	perc_v * 100 )
 
 			if(perc_a > highest_perc_a):
 				highest_perc_a = perc_a
@@ -184,7 +214,11 @@ class SingleClass(BaseClf):
 		print("features_shape:", self.features.shape)
 		print("labels_shape:", self.labels.shape)
 
+		print("Trainning labels", self.labels)
+
 		label_filter = [1,2,3,4]
+		label_filter = [1,2,4]
+
 		modified_features, modified_labels = [], []
 		for d,l in zip(self.features, self.labels):
 			if l in label_filter:
