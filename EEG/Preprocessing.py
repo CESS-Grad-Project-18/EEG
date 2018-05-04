@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 import math
 from scipy.signal import lfilter, firwin as fir1
+from scipy import nanmean
 from scipy.fftpack import rfft, fftfreq, fft
 import warnings
 calcMethod = "DE"
@@ -172,6 +173,10 @@ def processReadings(data, sampling, total_length, number_of_channels):
     t = np.linspace(0, total_length, sampling)
     readings = []
     for j in range(len(data)):    #LOOP ON VIDEOS
+        print("Processing video number", j)
+        if(j == 11):
+            print("Ekhee.. continuing ")
+            continue
         values =[]
         for i in range(number_of_channels):       #LOOP ON CHANNELS
             # print("Looping Channel", i)
@@ -259,6 +264,7 @@ def processLabels(data):
         # results.append(data[i][0:2].tolist())
         results.append(data[i][0:2])
 
+    results.pop(11)
 
     for i in range(len(results)):
         if results[i][0] >= 5 and results[i][1] >= 5:
