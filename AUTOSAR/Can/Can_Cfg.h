@@ -25,6 +25,7 @@
 
 typedef enum Can_ControllerIdType {
 	CAN_CTRL_1 = 0,
+	CAN_CTRL_2 = 1,
 	CAN_CONTROLLER_CNT = 2
 } Can_ControllerIdType;
 

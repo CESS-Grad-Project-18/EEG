@@ -140,42 +140,42 @@ Can_ReturnType Can_Write(Can_HwHandleType Hth, const Can_PduType* PduInfo) {
 void Can_MainFunction_Write_0(void) {
     uint8 i;
     const uint8 TxData[] = {"Test"}; /* Transmit string*/
-    //CAN_0.MB[0].CS.B.IDE = 0; /* Use standard ID length */
-    //CAN_0.MB[0].ID.B.ID_STD = 0x555;/* Transmit ID is 0x555 */
-    //CAN_0.MB[0].CS.B.RTR = 0; /* Data frame, not remote Tx request frame */
-    //CAN_0.MB[0].CS.B.DLC = sizeof(TxData) - 1; /*#bytes to transmit excluding null*/
+    CAN_0.MB[0].CS.B.IDE = 0; /* Use standard ID length */
+    CAN_0.MB[0].ID.B.ID_STD = 0x555;/* Transmit ID is 0x555 */
+    CAN_0.MB[0].CS.B.RTR = 0; /* Data frame, not remote Tx request frame */
+    CAN_0.MB[0].CS.B.DLC = sizeof(TxData) - 1; /*#bytes to transmit excluding null*/
     for (i = 0; i < sizeof(TxData); i++) {
-        //CAN_0.MB[0].DATA.B[i] = TxData[i]; /* Data to be transmitted */
+        CAN_0.MB[0].DATA.B[i] = TxData[i]; /* Data to be transmitted */
     }
-    //CAN_0.MB[0].CS.B.SRR = 1; /* Tx frame (not req'd for standard frame)*/
-    //CAN_0.MB[0].CS.B.CODE = 0xC; /* Activate msg. buf. to transmit data frame */
+    CAN_0.MB[0].CS.B.SRR = 1; /* Tx frame (not req'd for standard frame)*/
+    CAN_0.MB[0].CS.B.CODE = 0xC; /* Activate msg. buf. to transmit data frame */
 }
 
 void Can_MainFunction_Write_1(void) {
     uint8 i;
     const uint8 TxData[] = {"Test"}; /* Transmit string*/
-    //CAN_1.MB[0].CS.B.IDE = 0; /* Use standard ID length */
-    //CAN_1.MB[0].ID.B.ID_STD = 0x555;/* Transmit ID is 0x555 */
-    //CAN_1.MB[0].CS.B.RTR = 0; /* Data frame, not remote Tx request frame */
-    //CAN_1.MB[0].CS.B.DLC = sizeof(TxData) - 1; /*#bytes to transmit excluding null*/
+    CAN_1.MB[0].CS.B.IDE = 0; /* Use standard ID length */
+    CAN_1.MB[0].ID.B.ID_STD = 0x555;/* Transmit ID is 0x555 */
+    CAN_1.MB[0].CS.B.RTR = 0; /* Data frame, not remote Tx request frame */
+    CAN_1.MB[0].CS.B.DLC = sizeof(TxData) - 1; /*#bytes to transmit excluding null*/
     for (i = 0; i < sizeof(TxData); i++) {
-        //CAN_1.MB[0].DATA.B[i] = TxData[i]; /* Data to be transmitted */
+        CAN_1.MB[0].DATA.B[i] = TxData[i]; /* Data to be transmitted */
     }
-    //CAN_1.MB[0].CS.B.SRR = 1; /* Tx frame (not req'd for standard frame)*/
-    //CAN_1.MB[0].CS.B.CODE = 0xC; /* Activate msg. buf. to transmit data frame */
+    CAN_1.MB[0].CS.B.SRR = 1; /* Tx frame (not req'd for standard frame)*/
+    CAN_1.MB[0].CS.B.CODE = 0xC; /* Activate msg. buf. to transmit data frame */
 }
 
 void Can_MainFunction_Read_0(void) {
     uint8 i;
     uint32 timer;
     while (CAN_0.IFLAG1.B.BUF4TO1I != 8) {}; /* Wait for CAN 0 MB 4 flag */
-    //MsgCode = //CAN_0.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
-    //MsgId = //CAN_0.MB[4].ID.B.ID_STD;
-    //MsgLen = //CAN_0.MB[4].CS.B.DLC;
+    MsgCode = CAN_0.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
+    MsgId = CAN_0.MB[4].ID.B.ID_STD;
+    MsgLen = CAN_0.MB[4].CS.B.DLC;
     for (i = 0; i < MsgLen; i++) {
-        //MsgData[i] = //CAN_0.MB[4].DATA.B[i];
+        MsgData[i] = CAN_0.MB[4].DATA.B[i];
     }
-    //MsgTs = //CAN_0.MB[4].CS.B.TIMESTAMP;
+    MsgTs = CAN_0.MB[4].CS.B.TIMESTAMP;
     timer = CAN_0.TIMER.R; /* Read TIMER to unlock message buffers */
     CAN_0.IFLAG1.R = 0x00000010; /* Clear CAN 1 MB 4 flag */
 }
@@ -184,13 +184,13 @@ void Can_MainFunction_Read_1(void) {
     uint8 i;
     uint32 timer;
     while (CAN_1.IFLAG1.B.BUF4TO1I != 8); /* Wait for CAN 1 MB 4 flag */
-    //MsgCode = //CAN_1.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
-    //MsgId = //CAN_1.MB[4].ID.B.ID_STD;
-    //MsgLen = //CAN_1.MB[4].CS.B.DLC;
+    MsgCode = CAN_1.MB[4].CS.B.CODE; /* Read CODE, ID, LENGTH, DATA, TIMESTAMP*/
+    MsgId = CAN_1.MB[4].ID.B.ID_STD;
+    MsgLen = CAN_1.MB[4].CS.B.DLC;
     for (i = 0; i < MsgLen; i++) {
-        //MsgData[i] = //CAN_1.MB[4].DATA.B[i];
+        MsgData[i] = CAN_1.MB[4].DATA.B[i];
     }
-    //MsgTs = //CAN_1.MB[4].CS.B.TIMESTAMP;
+    MsgTs = CAN_1.MB[4].CS.B.TIMESTAMP;
     timer = CAN_1.TIMER.R; /* Read TIMER to unlock message buffers */
     CAN_1.IFLAG1.R = 0x00000010; /* Clear CAN 1 MB 4 flag */
 }
@@ -229,11 +229,11 @@ void Can_InitController(uint8 controller, const Can_ControllerType *config) {
             while (!CAN_1.MCR.B.FRZACK); /* Wait for freeze acknowledge to set */
             CAN_1.CTRL1.R = 0x04DB0086; /* Can bus: Same as CAN_0*/
             for (i = 0; i < 96; i++) { /* MPC574xG has 96 buffers after rev 0 */
-                //CAN_1.MB[i].CS.B.CODE = 0; /* Deactivate all message buffers */
+                CAN_1.MB[i].CS.B.CODE = 0; /* Deactivate all message buffers */
             }
-            //CAN_1.MB[4].CS.B.IDE = 0; /* Message Buffer 4 will look for a standard ID */
-            //CAN_1.MB[4].ID.B.ID_STD = 0x555; /* Message Buffer 4 will look for ID = 0x555 */
-            //CAN_1.MB[4].CS.B.CODE = 4; /* Message Buffer 4 set to RX EMPTY */
+            CAN_1.MB[4].CS.B.IDE = 0; /* Message Buffer 4 will look for a standard ID */
+            CAN_1.MB[4].ID.B.ID_STD = 0x555; /* Message Buffer 4 will look for ID = 0x555 */
+            CAN_1.MB[4].CS.B.CODE = 4; /* Message Buffer 4 set to RX EMPTY */
             CAN_1.RXMGMASK.R = 0x1FFFFFFF; /* Global acceptance mask */
             SIUL2.MSCR[42].B.SSS = 1; /* Pad PC10: Source signal is CAN1_TX */
             SIUL2.MSCR[42].B.SRC = 3; /* Pad PC10: Maximum slew rate */
