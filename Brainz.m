@@ -123,8 +123,17 @@ classdef Brainz < matlab.apps.AppBase
         function dataAvailable(app, src, event)
            bytes = fread(app.Tiva, app.Tiva.BytesAvailable);
            % data = sprintf('%s', bytes);
-           % disp(data);
-           fprintf('%s\n', bytes)
+           % disp(size(bytes));
+           len = size(bytes, 1);
+           if(len > 0)
+               fprintf('%s\n', bytes)
+               app.AlphaValue = bytes(mod(int8(rand * len), len));
+               app.BetaValue  = bytes(mod(int8(rand * len), len));
+               app.DeltaValue = bytes(mod(int8(rand * len), len));
+               app.GammaValue = bytes(mod(int8(rand * len), len));
+               app.ThetaValue = bytes(mod(int8(rand * len), len));
+               updateView(app);
+           end
         end
         
     end
@@ -147,10 +156,10 @@ classdef Brainz < matlab.apps.AppBase
         
        function updateView(app)
             app.AlphaGauge.Value = app.AlphaValue;
-            app.BetaGauge.Value = int8(app.BetaValue);
-            app.DeltaGauge.Value = int8(app.DeltaValue);
-            app.GammaGauge.Value = int8(app.GammaValue);
-            app.ThetaGauge.Value = int8(app.ThetaValue);
+            app.BetaGauge.Value = app.BetaValue;
+            app.DeltaGauge.Value = app.DeltaValue;
+            app.GammaGauge.Value = app.GammaValue;
+            app.ThetaGauge.Value = app.ThetaValue;
        end
         
        function setPlot(app)
