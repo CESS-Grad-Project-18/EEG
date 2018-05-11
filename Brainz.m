@@ -1,7 +1,7 @@
 classdef Brainz < matlab.apps.AppBase
 
     % Properties that correspond to app components
-    properties (Access = public)
+    properties (Access = private)
         Brainy        matlab.ui.Figure
         AlphaBtn      matlab.ui.control.Button
         BetaBtn       matlab.ui.control.Button
@@ -18,12 +18,14 @@ classdef Brainz < matlab.apps.AppBase
     end
 
 
-    properties (Access = private)
+    properties (Access = public)
         AlphaValue = 0 % Value of the Alpha signal recieved
         BetaValue  = 0 % Value of the Beta signal recieved
         DeltaValue = 0 % Value of the Delta signal recieved
         GammaValue = 0 % Value of the Gamma signal recieved
         ThetaValue = 0 % Value of the Theta signal recieved
+        Tiva = serial('COM6', 'BaudRate', 9600); % Serial port to Tiva-C
+        SignalPlot
     end
 
     methods (Access = public)
@@ -106,7 +108,25 @@ classdef Brainz < matlab.apps.AppBase
             app.ReadingAxes.Position = [39 134 549 299];
             set(app.ReadingAxes,'xtick',[],'ytick',[]);
             
+            app.SignalPlot = plot(app.ReadingAxes, 0:0.001:pi, sin(0:0.001:pi));
+            % set(app.SignalPlot,'XData',[0,1,2],'YData',[1,2,1]) % change the line data
+            
+            set(app.Tiva, 'DataBits', 8);
+            set(app.Tiva, 'StopBits', 1);
+            set(app.Tiva, 'Parity', 'none');
+            set(app.Tiva, 'BytesAvailableFcnMode', 'byte');
+            set(app.Tiva, 'Terminator', 'CR/LF');
+            app.Tiva.BytesAvailableFcn = createCallbackFcn(app, @dataAvailable, 'true');
+            fopen(app.Tiva);
         end
+        
+        function dataAvailable(app, src, event)
+           bytes = fread(app.Tiva, app.Tiva.BytesAvailable);
+           % data = sprintf('%s', bytes);
+           % disp(data);
+           fprintf('%s\n', bytes)
+        end
+        
     end
 
     methods (Access = public)
@@ -131,8 +151,12 @@ classdef Brainz < matlab.apps.AppBase
             app.DeltaGauge.Value = int8(app.DeltaValue);
             app.GammaGauge.Value = int8(app.GammaValue);
             app.ThetaGauge.Value = int8(app.ThetaValue);
-        end
+       end
         
+       function setPlot(app)
+           disp(app.SignalPlot)
+       end
+       
         function setAlpha(app, value)
             app.AlphaValue = value;
             updateView(app);
@@ -158,10 +182,13 @@ classdef Brainz < matlab.apps.AppBase
             updateView(app);
         end
 
+        function sendData(app, data)
+            fprintf(app.Tiva, char(data));
+        end
 
         % Code that executes before app deletion
         function delete(app)
-
+            fclose(app.Tiva);
             % Delete UIFigure when app is deleted
             delete(app.Brainy)
         end
