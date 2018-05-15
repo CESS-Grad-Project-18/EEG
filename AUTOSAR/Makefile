@@ -7,44 +7,49 @@
 # $^: The filenames of all the prerequisites, separated by spaces (no duplicates)
 
 PROJECT := AUTOSAR
-PPCCC := powerpc-linux-gnu-gcc
-MODULES := . Can CanIf COM PduR
+PPCCC := gcc
+MODULES := Can CanIf COM PduR
 SRC_DIR	:= $(addprefix ./,$(MODULES))
 #SRC_DIR	:= $(addprefix /,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
 SRC	:= $(foreach srcdir,$(SRC_DIR),$(wildcard $(srcdir)/*.c))
 OBJ := $(patsubst ./%.c, build/%.o, $(SRC))
 INCLUDE := $(addprefix -I,$(SRC_DIR))
-#CFLAGS := -Wall -Werror ${INCLUDE} -D 'PROJECTNAME="${PROJECT}"'
-CFLAGS := -Wall -Werror ${INCLUDE}
+# CFLAGS := -Wall -Werror ${INCLUDE} -D 'PROJECTNAME="${PROJECT}"'
+CFLAGSERR := -Wall -Werror ${INCLUDE}
+CFLAGS := ${INCLUDE}
 vpath %.c $(SRC_DIR)
 
 define make-build-dir
-$1/%.o : %.c
-	$(PPCCC) $(CFLAGS) -c $$< -o $$@
-	# $(PPCCC) $(INCLUDE) -c $$< -o $$@
+$1/%.o : ./%.c
+	$(PPCCC) -c $$< $(CFLAGS) -o $$@
 endef
 
+.PHONY: all checkbuildir clean
+all: checkbuildir objmain build/AUTOSAR.bin
+
+objmain:
+	$(PPCCC) -c main.c $(CFLAGS) -o build/main.o
+
+checkbuildir: $(BUILD_DIR)
+
+$(BUILD_DIR):
+	@mkdir -p $@
+
+build/AUTOSAR.bin: $(OBJ)
+	$(PPCCC) $^ $(CFLAGS) -o $@ main.c
+
+#.PHONY: clean
+clean:
+	@rm -rf $(BUILD_DIR)
+
+$(foreach buildir,$(BUILD_DIR),$(eval $(call make-build-dir,$(buildir))))
+
 help:
+	@echo $@
 	@echo Objects: $(OBJECTS)
 	@echo $(OBJ)
 	@echo $(SRC_DIR)
 	@echo $(BUILD_DIR)
 	@echo $(SRC)
 	@echo $(INCLUDE)
-
-.PHONY: all checkbuildir clean
-all: checkbuildir build/AUTOSAR
-
-build/AUTOSAR: $(OBJ)
-	# $(PPCCC) $^ -o $@
-	$(PPCCC) $(CFLAGS) $^ -o $@
-
-$(BUILD_DIR):
-	@mkdir -p $@
-
-#.PHONY: clean
-clean:
-	@rm -rf $(BUILD_DIR)
-
-$(foreach buildir, $(BUILD_DIR), $(eval $(call make-build-dir,$(buildir))))
