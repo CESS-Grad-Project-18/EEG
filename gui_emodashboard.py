@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from time import sleep
 import numpy as np
+from musicplayer import MusicPlayerWidget
 
 class Ui_emoBoard_dialog(object):
     def setupUi(self, emoBoard_dialog):
@@ -129,6 +130,19 @@ class Ui_emoBoard_dialog(object):
         self.plot_widget_O12.setInteractive(True)
         self.plot_widget_O12.setObjectName("plot_widget_O12")
         self.signal_tabs.addTab(self.tab_O12, "O1-O2")
+        ##########
+        self.tab_music = QtWidgets.QWidget()
+        self.tab_music.setObjectName("tab_music")
+        self.music_widget = MusicPlayerWidget(playlist=[], parent=self.tab_music)
+        self.music_widget.setGeometry(QtCore.QRect(10, 10, 821, 391))
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.plot_widget_O12.sizePolicy().hasHeightForWidth())
+        # self.music_widget.setSizePolicy(sizePolicy)
+        self.music_widget.setObjectName("music_widget")
+        self.signal_tabs.addTab(self.tab_music, "EmoMusicPlayer")
+        ##########
         self.alpha_lcd = QtWidgets.QLCDNumber(emoBoard_dialog)
         self.alpha_lcd.setGeometry(QtCore.QRect(20, 620, 64, 23))
         self.alpha_lcd.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -231,3 +245,4 @@ if __name__ == "__main__":
     timer.timeout.connect(ui.draw)
     timer.start(0)
     sys.exit(app.exec_())
+
