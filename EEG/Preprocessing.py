@@ -174,9 +174,6 @@ def processReadings(data, sampling, total_length, number_of_channels):
     readings = []
     for j in range(len(data)):    #LOOP ON VIDEOS
         print("Processing video number", j)
-        if(j == 11):
-            print("Ekhee.. continuing ")
-            continue
         values =[]
         for i in range(number_of_channels):       #LOOP ON CHANNELS
             # print("Looping Channel", i)
@@ -263,8 +260,6 @@ def processLabels(data):
     for i in range(len(data)):
         # results.append(data[i][0:2].tolist())
         results.append(data[i][0:2])
-
-    results.pop(11)
 
     for i in range(len(results)):
         if results[i][0] >= 5 and results[i][1] >= 5:

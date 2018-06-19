@@ -16,7 +16,7 @@ class BaseClf(ABC):
 							sklearn.svm.SVC( ),
 
 
-							#sklearn.naive_bayes.MultinomialNB(),
+							sklearn.naive_bayes.MultinomialNB(),
 							sklearn.naive_bayes.GaussianNB(),
 							sklearn.naive_bayes.BernoulliNB(),
 							
@@ -25,8 +25,8 @@ class BaseClf(ABC):
 							sklearn.ensemble.RandomForestClassifier(random_state=1),
 							sklearn.ensemble.AdaBoostClassifier(learning_rate=0.5),
 
-							# sklearn.neighbors.KNeighborsClassifier(),
-							sklearn.neural_network.MLPClassifier(),
+							sklearn.neighbors.KNeighborsClassifier(),
+							# sklearn.neural_network.MLPClassifier(),
 
 							sklearn.tree.DecisionTreeClassifier()]
 

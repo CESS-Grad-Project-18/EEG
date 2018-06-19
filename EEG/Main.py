@@ -12,7 +12,7 @@ import sys
 def getRates(videos):
 	sampling_rates = []
 	for i, video in enumerate(videos):
-		if( i < 10 ):
+		if( i < happy_vids ):
 			video_length = 3 * 60
 		else:
 			video_length = 5 * 50
@@ -23,7 +23,7 @@ def getRates(videos):
 def truncateSamples(videos, sampling_rates):
 	diffs = []
 	for i, video in enumerate(videos):
-		if( i < 10 ):
+		if( i < happy_vids ):
 			video_length = 3 * 60
 		else:
 			video_length = 5 * 50
@@ -35,6 +35,7 @@ def truncateSamples(videos, sampling_rates):
 			videos[i][ch] = videos[i][ch][:perfect]
 	print(diffs)
 
+happy_vids, sad_vids = 14, 18
 aa_reader = Reader.AaReader()
 happyfiles = ["Happy/"+filename for filename in os.listdir("./Happy")]
 sadfiles = ["Sad/"+filename for filename in os.listdir("./Sad")]
@@ -47,7 +48,6 @@ aa_data, aa_labels = aa_reader.read([files], ["Attia_Labels_1.1.dat"])
 # print("--- Printing ---")
 
 #aa_data = decimate_signal(aa_data, dsType='IIR')
-
 sampling_rates = getRates(aa_data[0])
 print(sampling_rates)
 truncateSamples(aa_data[0], sampling_rates)
@@ -62,11 +62,19 @@ for _ in sadfiles:
 
 channel_nos = [14 for _ in files]
 
-print("aa data shape", aa_data.shape)
-print("aa labels shape", aa_labels.shape)
 
 processed_data, processed_labels = [], []
 
+aa_data = aa_data.tolist()
+aa_data[0].pop( (happy_vids + 3) - 1)
+
+aa_labels = aa_labels.tolist()
+aa_labels[0].pop((happy_vids + 3) - 1)
+
+aa_data, aa_labels = np.asarray(aa_data), np.asarray(aa_labels)
+
+print("aa data shape", aa_data.shape)
+print("aa labels shape", aa_labels.shape)
 
 for i, subject in enumerate(aa_data):
 	processed_data.append(Preprocessing.processReadings(subject, sampling_rates[i], video_lengths[i], channel_nos[i]))
@@ -86,7 +94,7 @@ processed_labels = pickle.load(open("saved_labels_truncated", "rb"))
 print("loaded data", len(processed_data), len(processed_data[0]), len(processed_data[0][0]) )
 print("loaded labels", len(processed_labels), len(processed_labels[0]), (processed_labels[0][0]))
 
-manual_labels = [1 if i < 9 else 3 for i in range(19) ]
+manual_labels = [1 if i < happy_vids else 3 for i in range(happy_vids + sad_vids - 1) ]
 import CLFs
 s = np.arange(processed_data.shape[1])
 np.random.shuffle(s)
