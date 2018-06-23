@@ -9,15 +9,12 @@ import math
 import os
 import sys
 
-def getRates(videos):
+def getRates(videos,lengths):
 	sampling_rates = []
 	for i, video in enumerate(videos):
-		if( i < happy_vids ):
-			video_length = 3 * 60
-		else:
-			video_length = 5 * 50
+		video_length = lengths[i]
 		
-		sampling_rate = len(video[0]) // video_length
+		sampling_rate = int(len(video[0]) // video_length)
 		sampling_rates.append(sampling_rate)
 	return sampling_rates
 def truncateSamples(videos, sampling_rates):
@@ -35,56 +32,46 @@ def truncateSamples(videos, sampling_rates):
 			videos[i][ch] = videos[i][ch][:perfect]
 	print(diffs)
 
-happy_vids, sad_vids = 14, 18
-aa_reader = Reader.AaReader()
-happyfiles = ["Happy/"+filename for filename in os.listdir("./Happy")]
-sadfiles = ["Sad/"+filename for filename in os.listdir("./Sad")]
-files = happyfiles + sadfiles
-aa_data, aa_labels = aa_reader.read([files], ["Attia_Labels_1.1.dat"])
-
-
-# aa_data = Preprocessing.car_filter(aa_data)
-# aa_data = Preprocessing.decimate_signal(aa_data)
-# print("--- Printing ---")
-
-#aa_data = decimate_signal(aa_data, dsType='IIR')
-sampling_rates = getRates(aa_data[0])
-print(sampling_rates)
-truncateSamples(aa_data[0], sampling_rates)
-# sys.exit()
-
-video_lengths = []
-for _ in happyfiles:
-	video_lengths.append(3 * 60)
-for _ in sadfiles:
-	video_lengths.append(5 * 60)
-
-
-channel_nos = [14 for _ in files]
-
-
-processed_data, processed_labels = [], []
-
-aa_data = aa_data.tolist()
-aa_data[0].pop( (happy_vids + 3) - 1)
-
-aa_labels = aa_labels.tolist()
-aa_labels[0].pop((happy_vids + 3) - 1)
-
-aa_data, aa_labels = np.asarray(aa_data), np.asarray(aa_labels)
-
-print("aa data shape", aa_data.shape)
-print("aa labels shape", aa_labels.shape)
-
-for i, subject in enumerate(aa_data):
-	processed_data.append(Preprocessing.processReadings(subject, sampling_rates[i], video_lengths[i], channel_nos[i]))
-	processed_labels.append(Preprocessing.processLabels(aa_labels[i]))
-
-
-processed_data, processed_labels = np.asarray(processed_data), np.asarray(processed_labels)
-print(processed_data.shape, processed_labels.shape)
-pickle.dump(processed_data, open("saved_data_truncated", "wb"))
-pickle.dump(processed_labels, open("saved_labels_truncated", "wb"))
+happy_vids, sad_vids = 10, 9
+# aa_reader = Reader.AaReader()
+# happyfiles = ["Happy/"+filename for filename in os.listdir("./Happy")]
+# sadfiles = ["Sad/"+filename for filename in os.listdir("./Sad")]
+# files = happyfiles + sadfiles
+# aa_data, aa_labels = aa_reader.read([files], ["Total Labels.dat"])
+#
+#
+# # aa_data = Preprocessing.car_filter(aa_data)
+# # aa_data = Preprocessing.decimate_signal(aa_data)
+# # print("--- Printing ---")
+#
+# #aa_data = decimate_signal(aa_data, dsType='IIR')
+# video_lengths = [label[2]*60 for label in aa_labels[0]]
+# sampling_rates = getRates(aa_data[0], video_lengths)
+# print(sampling_rates)
+# truncateSamples(aa_data[0], sampling_rates)
+# # sys.exit()
+#
+#
+# channel_nos = [14 for _ in files]
+#
+#
+# processed_data, processed_labels = [], []
+#
+#
+# aa_data, aa_labels = np.asarray(aa_data), np.asarray(aa_labels)
+#
+# print("aa data shape", aa_data.shape)
+# print("aa labels shape", aa_labels.shape)
+#
+# for i, subject in enumerate(aa_data):
+# 	processed_data.append(Preprocessing.processReadings(subject, sampling_rates[i], video_lengths[i], channel_nos[i]))
+# 	processed_labels.append(Preprocessing.processLabels(aa_labels[i]))
+#
+#
+# processed_data, processed_labels = np.asarray(processed_data), np.asarray(processed_labels)
+# print(processed_data.shape, processed_labels.shape)
+# pickle.dump(processed_data, open("saved_data_truncated", "wb"))
+# pickle.dump(processed_labels, open("saved_labels_truncated", "wb"))
 
 
 processed_data = pickle.load(open("saved_data_truncated", "rb"))
@@ -94,7 +81,7 @@ processed_labels = pickle.load(open("saved_labels_truncated", "rb"))
 print("loaded data", len(processed_data), len(processed_data[0]), len(processed_data[0][0]) )
 print("loaded labels", len(processed_labels), len(processed_labels[0]), (processed_labels[0][0]))
 
-manual_labels = [1 if i < happy_vids else 3 for i in range(happy_vids + sad_vids - 1) ]
+manual_labels = [1 if i < happy_vids else 3 for i in range(happy_vids + sad_vids) ]
 import CLFs
 s = np.arange(processed_data.shape[1])
 np.random.shuffle(s)

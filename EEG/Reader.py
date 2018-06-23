@@ -61,7 +61,7 @@ class AaReader(Reader): #Aa ahmed attia's Reader
 		for label_index, label_file in enumerate(lfn):
 
 			with open("./" + label_file) as f:
-				local_videos_labels = [ list(map(int, line.split(",") )) for line in f.readlines() ]
+				local_videos_labels = [ list(map(float, line.split(",") )) for line in f.readlines() ]
 
 				subject_data, subject_labels = [], []
 				for data_file_index, data_file in enumerate(dfn[label_index]):
