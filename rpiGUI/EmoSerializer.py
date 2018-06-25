@@ -7,7 +7,7 @@ class EmoSerializer:
     def __init__(self, port, baudrate=9600, timeout=5): 
         ports = [port[1] for port in serial.tools.list_ports.comports() if port[2] != 'n/a']
         if port == None:
-            port = "COM6"
+            port = "COM6" if sys.platform.startswith('win') else '/dev/ttyAMA0'
         self.port = serial.Serial(port=port, baudrate=baudrate, 
         timeout=timeout, writeTimeout=timeout) 
         self.running = threading.Event()
