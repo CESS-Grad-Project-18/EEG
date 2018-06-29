@@ -74,28 +74,37 @@ processed_data, processed_labels = [], []
 # pickle.dump(processed_labels, open("saved_labels_truncated", "wb"))
 
 
-processed_data = pickle.load(open("saved_data_truncated", "rb"))
-processed_labels = pickle.load(open("saved_labels_truncated", "rb"))
+processed_data_am = pickle.load(open("saved_data_truncated_am", "rb"))
+processed_labels_am = pickle.load(open("saved_labels_truncated_am", "rb"))
+
+print("loaded data _am", len(processed_data_am), len(processed_data_am[0]), len(processed_data_am[0][0]) )
+print("loaded labels _am", len(processed_labels_am), len(processed_labels_am[0]), (processed_labels_am[0][0]))
+
+processed_data_on = pickle.load(open("saved_data_truncated_on", "rb"))
+processed_labels_on = pickle.load(open("saved_labels_truncated_on", "rb"))
+
+print("loaded data _on", len(processed_data_on), len(processed_data_on[0]), len(processed_data_on[0][0]) )
+print("loaded labels _on", len(processed_labels_on), len(processed_labels_on[0]), (processed_labels_on[0][0]))
+
+print(processed_labels_am[0])
+print(processed_labels_am[0][0])
 
 
-print("loaded data", len(processed_data), len(processed_data[0]), len(processed_data[0][0]) )
-print("loaded labels", len(processed_labels), len(processed_labels[0]), (processed_labels[0][0]))
 
-manual_labels = [1 if i < happy_vids else 3 for i in range(happy_vids + sad_vids) ]
-import CLFs
-s = np.arange(processed_data.shape[1])
-np.random.shuffle(s)
-manual_labels = np.asarray(manual_labels)
-print(manual_labels)
-print(manual_labels[s])
-# print("-------------------------------- Single Class CLF ------------------------------------")
-clf = CLFs.SingleClass(np.asarray(processed_data[0][s]), np.asarray(manual_labels[s]) )
-clf.train(True)
-clf.predict()
+# manual_labels = [1 if i < happy_vids else 3 for i in range(happy_vids + sad_vids) ]
+# import CLFs
+# s = np.arange(processed_data.shape[1])
+# np.random.shuffle(s)
+# manual_labels = np.asarray(manual_labels)
+# print(manual_labels)
+# print(manual_labels[s])
+# # print("-------------------------------- Single Class CLF ------------------------------------")
+# clf = CLFs.SingleClass(np.asarray(processed_data[0][s]), np.asarray(manual_labels[s]) )
+# clf.train(True)
+# clf.predict()
 
 
 # print("-------------------------------- Multi Class CLF ------------------------------------")
 # clf = CLFs.MultiClass(flat_deap, np.asarray(flat_deap_labels))
 # clf.train(1)
 # clf.predict(aa_data, aa_labels)
-
