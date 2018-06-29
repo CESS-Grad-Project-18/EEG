@@ -38,36 +38,36 @@ happy_vids, sad_vids = 10, 9
 # sadfiles = ["Sad/"+filename for filename in os.listdir("./Sad")]
 # files = happyfiles + sadfiles
 # aa_data, aa_labels = aa_reader.read([files], ["Total Labels.dat"])
-#
-#
+
+
 # # aa_data = Preprocessing.car_filter(aa_data)
 # # aa_data = Preprocessing.decimate_signal(aa_data)
 # # print("--- Printing ---")
-#
+
 # #aa_data = decimate_signal(aa_data, dsType='IIR')
 # video_lengths = [label[2]*60 for label in aa_labels[0]]
 # sampling_rates = getRates(aa_data[0], video_lengths)
 # print(sampling_rates)
 # truncateSamples(aa_data[0], sampling_rates)
 # # sys.exit()
-#
-#
+
+
 # channel_nos = [14 for _ in files]
-#
-#
-# processed_data, processed_labels = [], []
-#
-#
+
+
+processed_data, processed_labels = [], []
+
+
 # aa_data, aa_labels = np.asarray(aa_data), np.asarray(aa_labels)
-#
+
 # print("aa data shape", aa_data.shape)
 # print("aa labels shape", aa_labels.shape)
-#
+
 # for i, subject in enumerate(aa_data):
 # 	processed_data.append(Preprocessing.processReadings(subject, sampling_rates[i], video_lengths[i], channel_nos[i]))
 # 	processed_labels.append(Preprocessing.processLabels(aa_labels[i]))
-#
-#
+
+
 # processed_data, processed_labels = np.asarray(processed_data), np.asarray(processed_labels)
 # print(processed_data.shape, processed_labels.shape)
 # pickle.dump(processed_data, open("saved_data_truncated", "wb"))
