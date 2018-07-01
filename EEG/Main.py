@@ -86,22 +86,32 @@ processed_labels_on = pickle.load(open("saved_labels_truncated_on", "rb"))
 print("loaded data _on", len(processed_data_on), len(processed_data_on[0]), len(processed_data_on[0][0]) )
 print("loaded labels _on", len(processed_labels_on), len(processed_labels_on[0]), (processed_labels_on[0][0]))
 
-print(processed_labels_am[0])
-print(processed_labels_am[0][0])
+print("labels am",processed_labels_am[0])
+print("labels on", processed_labels_on[0])
 
 
 
-# manual_labels = [1 if i < happy_vids else 3 for i in range(happy_vids + sad_vids) ]
-# import CLFs
-# s = np.arange(processed_data.shape[1])
-# np.random.shuffle(s)
-# manual_labels = np.asarray(manual_labels)
-# print(manual_labels)
-# print(manual_labels[s])
-# # print("-------------------------------- Single Class CLF ------------------------------------")
-# clf = CLFs.SingleClass(np.asarray(processed_data[0][s]), np.asarray(manual_labels[s]) )
-# clf.train(True)
-# clf.predict()
+manual_labels = [1 if i < happy_vids else 3 for i in range(happy_vids + sad_vids) ] # We override the actual labels with manually written labels because the labels contain values in 2nd quad
+
+print("labels mu", np.asarray(manual_labels))
+processed_labels_on[0] = np.asarray(manual_labels.copy())
+processed_labels_am[0] = np.asarray(manual_labels.copy())
+
+processed_data = np.concatenate([processed_data_am[0],processed_data_on[0]])
+manual_labels = np.concatenate([processed_labels_am[0], processed_labels_on[0]])
+
+print(processed_data.shape)
+print(manual_labels.shape)
+import CLFs
+s = np.arange(processed_data.shape[1])
+np.random.shuffle(s)
+manual_labels = np.asarray(manual_labels)
+print(manual_labels)
+print(manual_labels[s])
+# print("-------------------------------- Single Class CLF ------------------------------------")
+clf = CLFs.SingleClass(np.asarray(processed_data[0][s]), np.asarray(manual_labels[s]) )
+clf.train(True)
+clf.predict()
 
 
 # print("-------------------------------- Multi Class CLF ------------------------------------")
