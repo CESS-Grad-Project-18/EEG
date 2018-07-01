@@ -48,6 +48,7 @@ happy_vids, sad_vids = 14, 18
 # # print("--- Printing ---")
 
 # #aa_data = decimate_signal(aa_data, dsType='IIR')
+
 # sampling_rates = getRates(aa_data[0])
 # print(sampling_rates)
 # truncateSamples(aa_data[0], sampling_rates)
@@ -58,7 +59,6 @@ happy_vids, sad_vids = 14, 18
 # 	video_lengths.append(3 * 60)
 # for _ in sadfiles:
 # 	video_lengths.append(5 * 60)
-
 
 # channel_nos = [14 for _ in files]
 
@@ -95,6 +95,7 @@ print("loaded data", len(processed_data), len(processed_data[0]), len(processed_
 print("loaded labels", len(processed_labels), len(processed_labels[0]), (processed_labels[0][0]))
 
 manual_labels = [1 if i < happy_vids else 3 for i in range(happy_vids + sad_vids - 1) ]
+
 import CLFs
 s = np.arange(processed_data.shape[1])
 np.random.shuffle(s)
