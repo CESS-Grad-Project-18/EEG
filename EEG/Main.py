@@ -73,6 +73,12 @@ processed_data, processed_labels = [], []
 # pickle.dump(processed_data, open("saved_data_truncated", "wb"))
 # pickle.dump(processed_labels, open("saved_labels_truncated", "wb"))
 
+processed_data_aa = pickle.load(open("saved_data_truncated_aa", "rb"))
+processed_labels_aa = pickle.load(open("saved_labels_truncated_aa", "rb"))
+
+print("loaded data _aa", len(processed_data_aa), len(processed_data_aa[0]), len(processed_data_aa[0][0]) )
+print("loaded labels _aa", len(processed_labels_aa), len(processed_labels_aa[0]), (processed_labels_aa[0][0]))
+
 
 processed_data_am = pickle.load(open("saved_data_truncated_am", "rb"))
 processed_labels_am = pickle.load(open("saved_labels_truncated_am", "rb"))
@@ -97,8 +103,8 @@ print("labels mu", np.asarray(manual_labels))
 processed_labels_on[0] = np.asarray(manual_labels.copy())
 processed_labels_am[0] = np.asarray(manual_labels.copy())
 
-processed_data = np.concatenate([processed_data_am[0],processed_data_on[0]])
-manual_labels = np.concatenate([processed_labels_am[0], processed_labels_on[0]])
+processed_data = np.concatenate([processed_data_am[0],processed_data_on[0], processed_data_aa[0]])
+manual_labels = np.concatenate([processed_labels_am[0], processed_labels_on[0], processed_labels_aa[0]])
 
 print(processed_data.shape)
 print(manual_labels.shape)
