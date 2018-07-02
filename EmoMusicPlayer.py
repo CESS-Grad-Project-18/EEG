@@ -13,8 +13,10 @@ class EmoMusicPlayer:
         self.buffer = buffer
         pg.mixer.init(freq, bitsize, channels, buffer)
         self.clock = pg.time.Clock()
-        self.playing = False
+        self.playing = threading.Event()
+        self.playing.set()
         self.th = threading.Thread(target=self.play, args=(, ))
+        self.th.start()
 
  
     def __load(music_file):
@@ -47,16 +49,15 @@ class EmoMusicPlayer:
             pg.mixer.music.stop()
             return -1
 
-    def play(result):
-        if self.playing:
-            e_code = self.__play(result)
+    def play():
+        while self.playing.is_set():
+            e_code = self.__play()
 
 
     
     def stop():
-        if not self.playing:
-            pg.mixer.music.fadeout(1000)
-            pg.mixer.music.stop()
-            self.playing = False
+        pg.mixer.music.fadeout(1000)
+        pg.mixer.music.stop()
+        self.playing.clear()
 
  
