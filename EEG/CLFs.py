@@ -211,10 +211,10 @@ class SingleClass(BaseClf):
 	def train(self, split = True):
 		self.features = np.asarray(self.features)
 		self.labels = np.asarray(self.labels)
-		print("features_shape:", self.features.shape)
-		print("labels_shape:", self.labels.shape)
+		# print("features_shape:", self.features.shape)
+		# print("labels_shape:", self.labels.shape)
 
-		print("Trainning labels", self.labels)
+		# print("Trainning labels", self.labels)
 
 		label_filter = [1,2,3,4]
 
@@ -232,7 +232,7 @@ class SingleClass(BaseClf):
 		
 		training_len = int(training_to_test_p * len(self.features))
 
-		print("Number of training example:", training_len)
+		# print("Number of training example:", training_len)
 		features_train = np.asarray( self.features[:training_len] )
 		labels_train   = np.asarray( self.labels[:training_len] )
 
@@ -240,8 +240,8 @@ class SingleClass(BaseClf):
 		self.labels_test =   self.labels[training_len:]
 
 
-		print("Trainning with", features_train.shape)
-		print("labeling with", labels_train.shape)
+		# print("Trainning with", features_train.shape)
+		# print("labeling with", labels_train.shape)
 		for clf in self.list_of_clfs:
 			# print("Clf name:", clf)
 			# print(features_train.shape, labels_train.shape)
@@ -249,30 +249,36 @@ class SingleClass(BaseClf):
 
 
 	def predict(self, features_test = None, labels_test = None):
+		clfs_acc = [0 for _ in self.list_of_clfs]
 		if features_test != None:
 			self.features_test = features_test
 			self.labels_test = labels_test
 		self.features_test = np.asarray(self.features_test)
 		self.labels_test = np.asarray(self.labels_test)
-		print("predicting with", "features", self.features_test.shape, "labels", self.labels_test.shape )
+		# print("predicting with", "features", self.features_test.shape, "labels", self.labels_test.shape )
 		highest_acc, highest_clf = 0, None
-		for clf in self.list_of_clfs:
-			print("Clf name:", clf)
+		for clf_i, clf in enumerate(self.list_of_clfs):
+			# print("Clf name:", clf)
 			c = 0
 			for prediction, actual_label in zip(clf.predict(self.features_test), self.labels_test):
-				print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
+				# print("Predicted: ", prediction, " ,Correct Value: ", actual_label )
 				if(prediction == actual_label):
 					c+=1
 
 			accuracy = c/len(self.labels_test)
-			print(c, "Correct out of ", 
-		  		len(self.labels_test),
-			  	" Percesion: " ,
-			  	accuracy * 100 )
+			# print(c, "Correct out of ", 
+		  		# len(self.labels_test),
+			  	# " Percesion: " ,
+			  	# accuracy * 100 )
+
+			clfs_acc[clf_i] += accuracy
+
 			if(accuracy >= highest_acc):
 				highest_acc = accuracy
 				highest_clf = clf
-		print("\n\n")
-		print("Highest accuracy:", highest_acc * 100,
-			  "Highest Clf:", highest_clf)
-		print("_____________________________________")
+		# print("\n\n")
+		# print("Highest accuracy:", highest_acc * 100,
+			  # "Highest Clf:", highest_clf)
+		# print("_____________________________________")
+
+		return np.asarray(clfs_acc)
