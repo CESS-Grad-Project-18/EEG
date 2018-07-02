@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 import pygame as pg
-from Queue import Queue
+from queue import Queue
 
 class EmoMusicPlayer: 
     def __init__(self, freq=44100, bitsize=-16, channels=2, buffer=2048):
@@ -15,7 +15,7 @@ class EmoMusicPlayer:
         self.clock = pg.time.Clock()
         self.playing = threading.Event()
         self.playing.set()
-        self.th = threading.Thread(target=self.play, args=(, ))
+        self.th = threading.Thread(target=self.play, args=())
         self.th.start()
 
  
@@ -28,7 +28,7 @@ class EmoMusicPlayer:
             return
  
     def __play():
-        result = self.q.get()
+        result = self.q.get_nowait()
         if result == 0:
             self.__load() # Sad, not sleepy
         elif result == 1:
@@ -38,23 +38,25 @@ class EmoMusicPlayer:
         elif result == 3:
             self.__load() # Happy, sleepy 
         else:
-            pass
+            print("Nothing to play")
         pg.mixer.music.play()
-        self.playing = True
         while pg.mixer.music.get_busy():
-        try:
-            clock.tick(30)
-        except KeyboardInterrupt:
-            pg.mixer.music.fadeout(1000)
-            pg.mixer.music.stop()
-            return -1
+            try:
+                self.clock.tick(30)
+            except KeyboardInterrupt:
+                pg.mixer.music.fadeout(1000)
+                pg.mixer.music.stop()
+                return -1
 
     def play():
-        while self.playing.is_set():
+        while self.playing.is_set() and not self.q.empty():
             e_code = self.__play()
 
 
-    
+    def add(decision):
+        self.q.put_nowait(int(decision))
+
+
     def stop():
         pg.mixer.music.fadeout(1000)
         pg.mixer.music.stop()
