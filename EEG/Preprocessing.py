@@ -27,11 +27,9 @@ def car_filter(channel_data):
     """
     data_size = len(channel_data)
     car_channel_data = np.zeros_like(channel_data)
+    total_sum = np.sum(channel_data)
     for i in range(data_size):
-        car_channel = np.zeros_like(channel_data[0])
-        for j in range(data_size):
-            if(i != j):
-                car_channel = np.add(car_channel, channel_data[j])
+        car_channel = total_sum - channel_data[i]
         car_channel_data[i] = channel_data[i] - np.divide(car_channel, float(data_size - 1))
     return car_channel_data
 
