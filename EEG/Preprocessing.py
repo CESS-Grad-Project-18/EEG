@@ -34,6 +34,19 @@ def CARFilter(channel_data):
         car_channel_data[i] = channel_data[i] - np.divide(car_channel, float(data_size - 1))
     return car_channel_data
 
+def car_filter(channel_data):
+    """
+    Function that performs common average reference filtering on collected EEG signal
+    (Applied after signal collection)
+    :param channel_data: The array containing the EEG channel signals (AF3, AF4,Oz, etc.)
+    :return: Array containing channels after CAR filter has been applied to them
+    """
+    car_channel_data = np.zeros(channel_data.shape)
+    for i in range(channel_data.shape[1]):
+        car_channel_data[:,i] = channel_data[:,i] - np.mean(channel_data, axis=1)
+    return car_channel_data    
+
+
 def decimate_signal(signal, old_sample_rate = 256, new_sample_rate = 128, ds_type = 'Mean'):
     """ Function that downsamples signal.
     
