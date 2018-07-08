@@ -216,7 +216,7 @@ class SingleClass(BaseClf):
 
 		# print("Trainning labels", self.labels)
 
-		label_filter = [1,2,3,4]
+		label_filter = [1,3]
 
 		modified_features, modified_labels = [], []
 		for d,l in zip(self.features, self.labels):

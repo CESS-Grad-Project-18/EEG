@@ -23,9 +23,9 @@ class DeapReader(Reader):
 		tik = time.time()
 		for i in files:
 			if i<10:
-				file = open("./"+"s0"+str(i)+".dat", "rb")
+				file = open("./Deap/"+"s0"+str(i)+".dat", "rb")
 			else:
-				file = open("./s" +str(i) + ".dat", "rb")
+				file = open("./Deap/s" +str(i) + ".dat", "rb")
 
 			f = pickle.load(file, encoding="latin1")
 			file.close()
