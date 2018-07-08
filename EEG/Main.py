@@ -1,4 +1,4 @@
-#!usr/bin/python
+0#!usr/bin/python
 import numpy as np
 import sys
 import Reader
@@ -103,18 +103,33 @@ manual_labels = np.concatenate([processed_labels_am[0], processed_labels_on[0]])
 print(processed_data.shape)
 print(manual_labels.shape)
 import CLFs
-s = np.arange(processed_data.shape[0])
-np.random.shuffle(s)
-manual_labels = np.asarray(manual_labels)
-print(manual_labels)
-print(manual_labels[s])
-# print("-------------------------------- Single Class CLF ------------------------------------")
-clf = CLFs.SingleClass(np.asarray(processed_data[s]), np.asarray(manual_labels[s]) )
-clf.train(True)
-clf.predict()
+total_results = None
+
+iterations = 1000
+
+for i in range(iterations):
+	s = np.arange(processed_data.shape[0])
+	np.random.shuffle(s)
+	manual_labels = np.asarray(manual_labels)
+	# print(manual_labels)
+	# print(manual_labels[s])
+
+	# print("-------------------------------- Single Class CLF ------------------------------------")
+	clf = CLFs.SingleClass(np.asarray(processed_data[s]), np.asarray(manual_labels[s]) )
+	clf.train(True)
+
+	iteration_results = clf.predict()
+	# print("Iteration res", iteration_results)
+	if not total_results is None:
+		total_results += iteration_results
+	else:
+		total_results = iteration_results
 
 
-# print("-------------------------------- Multi Class CLF ------------------------------------")
-# clf = CLFs.MultiClass(flat_deap, np.asarray(flat_deap_labels))
-# clf.train(1)
-# clf.predict(aa_data, aa_labels)
+	# print("-------------------------------- Multi Class CLF ------------------------------------")
+	# clf = CLFs.MultiClass(flat_deap, np.asarray(flat_deap_labels))
+	# clf.train(1)
+	# clf.predict(aa_data, aa_labels)
+
+total_results/= iterations
+print(total_results)
