@@ -5,18 +5,21 @@ from scipy.signal import lfilter, firwin as fir1
 from scipy import nanmean
 from scipy.fftpack import rfft, fftfreq, fft
 import warnings
-calcMethod = "DE"
-SymetricMethod = "DCAU"
+calcMethod = "TR"
+SymetricMethod = "None"
 
 def SymetricCalc(values):
+    print("CalcMethod", calcMethod)
+    print("Sym Method", SymetricMethod)
     if(SymetricMethod == "None"):
         return np.array(values).flatten().tolist()
     if(SymetricMethod == "DASM"):
         return np.array(subHorizontalEmo(values)).flatten().tolist()
     if(SymetricMethod == "RASM"):
-        return np.array(subVertical(values)).flatten().tolist()
-    if(SymetricMethod == "DCAU"):
         return np.array(divHorizontalEmo(values)).flatten().tolist()
+    if(SymetricMethod == "ASM"):
+        return np.array(divHorizontalEmo(values) + subHorizontalEmo(values)).flatten().tolist()
+    
 
 def car_filter(channel_data):
     """
@@ -118,7 +121,6 @@ def subHorizontalEmo(channels):
     cnn = ch_name_num
     diff = []
     diff.append(abs(np.subtract(channels[cnn["AF3"]], channels[cnn["AF4"]])).tolist())
-    diff.append(abs(np.subtract(channels[cnn["F3"]], channels[cnn["F3"]])).tolist())
     diff.append(abs(np.subtract(channels[cnn["F7"]], channels[cnn["F8"]])).tolist())
     diff.append(abs(np.subtract(channels[cnn["F3"]], channels[cnn["F4"]])).tolist())
     diff.append(abs(np.subtract(channels[cnn["FC5"]], channels[cnn["FC6"]])).tolist())
@@ -134,7 +136,6 @@ def divHorizontalEmo(channels):
     cnn = ch_name_num
     diff = []
     diff.append(abs(np.divide(channels[cnn["AF3"]], channels[cnn["AF4"]])).tolist())
-    diff.append(abs(np.divide(channels[cnn["F3"]], channels[cnn["F3"]])).tolist())
     diff.append(abs(np.divide(channels[cnn["F7"]], channels[cnn["F8"]])).tolist())
     diff.append(abs(np.divide(channels[cnn["F3"]], channels[cnn["F4"]])).tolist())
     diff.append(abs(np.divide(channels[cnn["FC5"]], channels[cnn["FC6"]])).tolist())

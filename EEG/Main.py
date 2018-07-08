@@ -32,7 +32,7 @@ def truncateSamples(videos, sampling_rates):
 			videos[i][ch] = videos[i][ch][:perfect]
 	print(diffs)
 
-happy_vids, sad_vids = 5, 5
+happy_vids, sad_vids = 10, 9
 aa_reader = Reader.AaReader()
 happyfiles = ["Happy/"+filename for filename in os.listdir("./Happy")]
 sadfiles = ["Sad/"+filename for filename in os.listdir("./Sad")]
